@@ -95,8 +95,9 @@ export function RsvpForm({
       // Deteksi nomor WhatsApp yang sudah pernah terdaftar sebelumnya
       if (response.data.isExisting) {
         toast.info(
+          "Nomor WhatsApp Sudah Terdaftar",
           `Nomor WhatsApp ini sudah terdaftar atas nama ${response.data.existingName ?? "peserta"} (${response.data.ticketCode}). Mengalihkan ke E-Ticket Anda...`,
-          { duration: 5000 }
+          5000
         );
         router.push(`/tiket/${response.data.ticketCode}?existing=1`);
         return;

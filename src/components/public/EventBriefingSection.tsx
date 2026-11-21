@@ -143,7 +143,7 @@ export function EventBriefingSection({
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         {/* ── BAGIAN ATAS: TACTICAL RECON HUD & VENUE SHOWCASE ── */}
-        <div className="space-y-6">
+        <div id="denah-section" className="space-y-6 scroll-mt-24">
           {/* Editorial Section Header */}
           <div className="flex items-center gap-3">
             <span className="w-8 h-[2px] bg-[#FF4655]" />

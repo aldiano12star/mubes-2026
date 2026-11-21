@@ -83,9 +83,10 @@ export function HeroBriefing({
 
   return (
     <section
+      id="hero-section"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative overflow-hidden bg-[#0F1923] border-b border-edge/80 pt-8 pb-16 lg:pt-14 lg:pb-24"
+      className="relative overflow-hidden bg-[#0F1923] border-b border-edge/80 pt-8 pb-16 lg:pt-14 lg:pb-24 scroll-mt-20"
     >
       {/* ── LAYER 1: TEXTURE ASCENT SPLASH BACKGROUND ── */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
@@ -123,111 +124,113 @@ export function HeroBriefing({
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
           {/* ════ KOLOM KIRI: MISSION BRIEFING & SPIKE COUNTDOWN ════ */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* Tactical Tagline / Coordinates */}
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-[2px] bg-brand shrink-0" />
-              <span className="font-condensed font-bold text-xs tracking-[0.24em] text-brand uppercase">
-                SMAN 1 BANTUL • RUANG YUDISTIRA
-              </span>
-              <span className="h-px flex-1 bg-edge/60" />
-            </div>
-
-            {/* Giant Anton Title with Editorial Subtitle */}
-            <div className="space-y-3">
-              <h1 className="font-display font-bold uppercase text-4xl sm:text-6xl lg:text-7xl text-ink tracking-tight leading-[0.95]">
-                {eventTitle}
-              </h1>
-              <p className="font-condensed font-bold text-sm sm:text-lg tracking-[0.18em] text-[#FF4655] uppercase">
-                {eventSubtitle}
-              </p>
-            </div>
-
-            {/* Tactical Metadata Grid (Tata Letak 2+1 Sejajar Presisi dengan Countdown) */}
-            <div className="space-y-3 pt-1">
-              {/* Baris Atas: 2 Kolom Sejajar (Tanggal & Lokasi) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="border border-edge bg-[#14202C]/80 valo-chamfer-sm p-3.5 flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-brand shrink-0 mt-0.5" />
-                  <div className="min-w-0 flex-1">
-                    <span className="block font-condensed font-bold text-[10px] tracking-[0.2em] text-ink-subtle uppercase">
-                      TANGGAL ACARA
-                    </span>
-                    <span className="font-sans font-semibold text-sm text-ink block">
-                      {eventDateDisplay}
-                    </span>
-                    <span className="font-mono text-xs text-ink-muted flex items-center gap-1.5 mt-0.5">
-                      <Clock className="h-3.5 w-3.5 text-ink-subtle shrink-0" />
-                      {eventTimeDisplay}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="border border-edge bg-[#14202C]/80 valo-chamfer-sm p-3.5 flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-brand shrink-0 mt-0.5" />
-                  <div className="min-w-0 flex-1">
-                    <span className="block font-condensed font-bold text-[10px] tracking-[0.2em] text-ink-subtle uppercase">
-                      LOKASI ACARA
-                    </span>
-                    <span className="font-sans font-semibold text-sm text-ink block">
-                      {eventLocation}
-                    </span>
-                    <span className="font-mono text-xs text-ink-muted block mt-0.5">
-                      {venueAddress}
-                    </span>
-                  </div>
-                </div>
+          <div className="lg:col-span-7">
+            <div className="w-full max-w-[560px] space-y-6">
+              {/* Tactical Tagline / Coordinates */}
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-[2px] bg-brand shrink-0" />
+                <span className="font-condensed font-bold text-xs tracking-[0.24em] text-brand uppercase">
+                  SMAN 1 BANTUL • RUANG YUDISTIRA
+                </span>
+                <span className="h-px flex-1 bg-edge/60" />
               </div>
 
-              {/* Baris Bawah: 1 Bilah Horizontal Selebar Penuh (HTM Radiant Pass) */}
-              <div className="border border-[#00E5FF]/40 bg-[#14202C]/90 valo-chamfer-sm p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <Ticket className="h-5 w-5 text-[#00E5FF] shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-condensed font-bold text-xs tracking-[0.2em] text-[#00E5FF] uppercase">
-                        {entryFeeLabel}
+              {/* Giant Anton Title with Editorial Subtitle */}
+              <div className="space-y-3">
+                <h1 className="font-display font-bold uppercase text-4xl sm:text-6xl lg:text-7xl text-ink tracking-tight leading-[0.95]">
+                  {eventTitle}
+                </h1>
+                <p className="font-condensed font-bold text-sm sm:text-lg tracking-[0.18em] text-[#FF4655] uppercase">
+                  {eventSubtitle}
+                </p>
+              </div>
+
+              {/* Tactical Metadata Grid (Tata Letak 2+1 Sejajar Presisi dengan Countdown) */}
+              <div className="space-y-3 pt-1">
+                {/* Baris Atas: 2 Kolom Sejajar (Tanggal & Lokasi) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="border border-edge bg-[#14202C]/80 valo-chamfer-sm p-3.5 flex items-start gap-3">
+                    <Calendar className="h-5 w-5 text-brand shrink-0 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <span className="block font-condensed font-bold text-[10px] tracking-[0.2em] text-ink-subtle uppercase">
+                        TANGGAL ACARA
+                      </span>
+                      <span className="font-sans font-semibold text-sm text-ink block">
+                        {eventDateDisplay}
+                      </span>
+                      <span className="font-mono text-xs text-ink-muted flex items-center gap-1.5 mt-0.5">
+                        <Clock className="h-3.5 w-3.5 text-ink-subtle shrink-0" />
+                        {eventTimeDisplay}
                       </span>
                     </div>
-                    <span className="font-sans font-semibold text-xs text-white block truncate mt-0.5">
-                      {entryFeeNote}
-                    </span>
+                  </div>
+
+                  <div className="border border-edge bg-[#14202C]/80 valo-chamfer-sm p-3.5 flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-brand shrink-0 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <span className="block font-condensed font-bold text-[10px] tracking-[0.2em] text-ink-subtle uppercase">
+                        LOKASI ACARA
+                      </span>
+                      <span className="font-sans font-semibold text-sm text-ink block">
+                        {eventLocation}
+                      </span>
+                      <span className="font-mono text-xs text-ink-muted block mt-0.5">
+                        {venueAddress}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-                  <span className="font-mono text-sm px-3 py-1 bg-[#00E5FF]/15 border border-[#00E5FF]/40 text-[#00E5FF] font-bold tracking-wider">
-                    {entryFeeAmount}
-                  </span>
+                {/* Baris Bawah: 1 Bilah Horizontal Selebar Penuh (HTM Radiant Pass) */}
+                <div className="border border-[#00E5FF]/40 bg-[#14202C]/90 valo-chamfer-sm p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <Ticket className="h-5 w-5 text-[#00E5FF] shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-condensed font-bold text-xs tracking-[0.2em] text-[#00E5FF] uppercase">
+                          {entryFeeLabel}
+                        </span>
+                      </div>
+                      <span className="font-sans font-semibold text-xs text-white block truncate mt-0.5">
+                        {entryFeeNote}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                    <span className="font-mono text-sm px-3 py-1 bg-[#00E5FF]/15 border border-[#00E5FF]/40 text-[#00E5FF] font-bold tracking-wider">
+                      {entryFeeAmount}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Precision Spike Countdown Component */}
-            <div className="pt-2">
-              <CountdownTimer targetIso={eventDateIso} />
-            </div>
+              {/* Precision Spike Countdown Component */}
+              <div className="pt-2">
+                <CountdownTimer targetIso={eventDateIso} />
+              </div>
 
-            {/* Double-Border Riot CTA Buttons */}
-            <div className="pt-4 flex flex-wrap items-center gap-4">
-              <a
-                href="#rsvp-section"
-                className="riot-btn-frame min-h-[48px]"
-              >
-                <span className="riot-btn-inner flex items-center gap-2">
-                  <span>KONFIRMASI KEHADIRAN</span>
-                  <ChevronRight className="h-4 w-4" />
-                </span>
-              </a>
+              {/* Double-Border Riot CTA Buttons */}
+              <div className="pt-4 flex flex-wrap items-center gap-4">
+                <a
+                  href="#rsvp-section"
+                  className="riot-btn-frame min-h-[48px]"
+                >
+                  <span className="riot-btn-inner flex items-center gap-2">
+                    <span>KONFIRMASI KEHADIRAN</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </span>
+                </a>
 
-              <a
-                href="#rundown-section"
-                className="riot-btn-frame-secondary min-h-[48px]"
-              >
-                <span className="riot-btn-inner">
-                  LIHAT RUNDOWN
-                </span>
-              </a>
+                <a
+                  href="#rundown-section"
+                  className="riot-btn-frame-secondary min-h-[48px]"
+                >
+                  <span className="riot-btn-inner">
+                    LIHAT RUNDOWN
+                  </span>
+                </a>
+              </div>
             </div>
           </div>
 

@@ -5,6 +5,11 @@ import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 
 export type ToastType = "success" | "error" | "info";
 
+export interface ToastOptions {
+  description?: string;
+  duration?: number;
+}
+
 export interface ToastItem {
   id: string;
   type: ToastType;
@@ -22,26 +27,66 @@ function notifyListeners() {
   listeners.forEach((listener) => listener([...toastsState]));
 }
 
+function parseToastArgs(
+  descriptionOrOptions?: string | ToastOptions,
+  duration?: number
+): { description?: string; duration: number } {
+  if (typeof descriptionOrOptions === "object" && descriptionOrOptions !== null) {
+    return {
+      description: descriptionOrOptions.description,
+      duration: descriptionOrOptions.duration ?? 4000,
+    };
+  }
+  return {
+    description: descriptionOrOptions,
+    duration: typeof duration === "number" ? duration : 4000,
+  };
+}
+
 export const toast = {
-  show: (type: ToastType, message: string, description?: string, duration = 4000) => {
+  show: (
+    type: ToastType,
+    message: string,
+    descriptionOrOptions?: string | ToastOptions,
+    duration?: number
+  ) => {
+    const { description, duration: toastDuration } = parseToastArgs(
+      descriptionOrOptions,
+      duration
+    );
     const id = Math.random().toString(36).substring(2, 9);
-    const newToast: ToastItem = { id, type, message, description, duration };
+    const newToast: ToastItem = {
+      id,
+      type,
+      message,
+      description,
+      duration: toastDuration,
+    };
     toastsState = [...toastsState, newToast];
     notifyListeners();
 
-    if (duration > 0) {
+    if (toastDuration > 0) {
       setTimeout(() => {
         toast.dismiss(id);
-      }, duration);
+      }, toastDuration);
     }
     return id;
   },
-  success: (message: string, description?: string, duration?: number) =>
-    toast.show("success", message, description, duration),
-  error: (message: string, description?: string, duration?: number) =>
-    toast.show("error", message, description, duration),
-  info: (message: string, description?: string, duration?: number) =>
-    toast.show("info", message, description, duration),
+  success: (
+    message: string,
+    descriptionOrOptions?: string | ToastOptions,
+    duration?: number
+  ) => toast.show("success", message, descriptionOrOptions, duration),
+  error: (
+    message: string,
+    descriptionOrOptions?: string | ToastOptions,
+    duration?: number
+  ) => toast.show("error", message, descriptionOrOptions, duration),
+  info: (
+    message: string,
+    descriptionOrOptions?: string | ToastOptions,
+    duration?: number
+  ) => toast.show("info", message, descriptionOrOptions, duration),
   dismiss: (id: string) => {
     toastsState = toastsState.filter((t) => t.id !== id);
     notifyListeners();
