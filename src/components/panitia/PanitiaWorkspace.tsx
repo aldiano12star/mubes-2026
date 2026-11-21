@@ -137,13 +137,13 @@ export function PanitiaWorkspace({
       <header className="sticky top-0 z-30 w-full border-b border-zinc-800 bg-zinc-900/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           {/* Identitas Kiri: Logo + Title */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="relative h-9 w-9 shrink-0">
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+            <div className="relative h-10 w-10 shrink-0">
               <Image
                 src="/images/logo-saba-exploit.png"
                 alt="Logo Saba ExploIT"
                 fill
-                sizes="36px"
+                sizes="40px"
                 className="object-contain"
                 priority
               />

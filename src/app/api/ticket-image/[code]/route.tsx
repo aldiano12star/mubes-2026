@@ -190,8 +190,8 @@ export async function GET(
                 <img
                   src={logoDataUrl}
                   alt="Logo Saba ExploIT"
-                  width={52}
-                  height={52}
+                  width={56}
+                  height={56}
                   style={{
                     display: "flex",
                     objectFit: "contain",
@@ -201,12 +201,12 @@ export async function GET(
                 <div
                   style={{
                     display: "flex",
-                    width: "52px",
-                    height: "52px",
+                    width: "56px",
+                    height: "56px",
                     backgroundColor: "#FF4655",
                     color: "#FFFFFF",
                     fontWeight: "bold",
-                    fontSize: "22px",
+                    fontSize: "24px",
                     alignItems: "center",
                     justifyContent: "center",
                     borderRadius: "6px",

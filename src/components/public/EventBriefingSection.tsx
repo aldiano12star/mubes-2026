@@ -31,6 +31,8 @@ interface EventBriefingSectionProps {
   eventLocation?: string;
   eventDateDisplay?: string;
   eventTimeDisplay?: string;
+  schoolPhotoSrc?: string;
+  schoolBlueprintSrc?: string | null;
 }
 
 const DEFAULT_RUNDOWN: RundownItem[] = [
@@ -85,6 +87,8 @@ export function EventBriefingSection({
   eventLocation = EVENT_DEFAULTS.eventLocation,
   eventDateDisplay = EVENT_DEFAULTS.eventDateDisplay,
   eventTimeDisplay = EVENT_DEFAULTS.eventTimeDisplay,
+  schoolPhotoSrc = "/images/venue/school-photo.jpg",
+  schoolBlueprintSrc = null,
 }: EventBriefingSectionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -159,7 +163,7 @@ export function EventBriefingSection({
               <div className="flex items-center gap-2">
                 <Crosshair className="w-4 h-4 text-[#00E5FF] animate-spin-slow" />
                 <span className="font-condensed font-bold text-xs tracking-[0.2em] text-white uppercase">
-                  SEKTOR: {eventLocation.toUpperCase()}
+                  SEKTOR: SMAN 1 BANTUL • RUANG YUDISTIRA
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -167,53 +171,55 @@ export function EventBriefingSection({
                   RECON SCAN: ACTIVE
                 </span>
                 <span className="hidden sm:inline font-mono text-[10px] text-[#0F1923] bg-[#ECE8E1] font-bold px-2 py-0.5 uppercase tracking-wider">
-                  TACTICAL VENUE
+                  MARKAS BESAR
                 </span>
               </div>
             </div>
 
             {/* Split Screen Showcase: Foto Sekolah + Blueprint Denah */}
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[320px] lg:min-h-[380px]">
-              {/* Foto Utama Sekolah (dengan fallback otomatis ke Valorant Map) */}
-              <div className="lg:col-span-8 relative min-h-[220px] sm:min-h-[280px] lg:min-h-full overflow-hidden group">
+              {/* Foto Utama Sekolah (Tampil penuh, jernih & tajam sesuai color grading) */}
+              <div className="lg:col-span-8 relative min-h-[240px] sm:min-h-[300px] lg:min-h-full overflow-hidden group">
                 <Image
                   src={
                     useFallbackPhoto
                       ? "/images/valorant/map-ascent-splash.png"
-                      : "/images/venue/school-photo.jpg"
+                      : schoolPhotoSrc
                   }
-                  alt="Markas SMA Negeri 1 Bantul"
+                  alt="Foto Udara SMA Negeri 1 Bantul — Ruang Yudistira"
                   fill
                   sizes="(max-width: 1024px) 100vw, 65vw"
-                  className="object-cover filter contrast-105 brightness-95 group-hover:scale-102 transition-transform duration-700"
+                  className="object-cover group-hover:scale-102 transition-transform duration-700"
+                  priority
                   onError={() => setUseFallbackPhoto(true)}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0F1923] via-[#0F1923]/20 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-[#0F1923]" />
+                {/* Overlay lembut bagian bawah untuk kenyamanan baca badge callout */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0F1923]/90 via-[#0F1923]/20 to-transparent pointer-events-none" />
 
-                {/* Tactical Recon HUD Crosshair Overlay */}
+                {/* Tactical Recon HUD Corner Accents */}
                 <div className="absolute top-4 right-4 pointer-events-none opacity-40">
-                  <div className="w-16 h-16 border-t border-r border-[#00E5FF]" />
+                  <div className="w-12 h-12 border-t border-r border-[#00E5FF]" />
                 </div>
                 <div className="absolute bottom-16 left-4 pointer-events-none opacity-40">
-                  <div className="w-16 h-16 border-b border-l border-[#00E5FF]" />
+                  <div className="w-12 h-12 border-b border-l border-[#00E5FF]" />
                 </div>
 
-                {/* Tactical Callout Badges on Top of Photo (Sesuai Notulensi) */}
+                {/* Tactical Callout Badges on Top of Photo (Sesuai Notulensi & Permintaan User) */}
                 <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 z-10">
-                  <div className="bg-[#0F1923]/90 border border-[#FF4655]/50 px-3 py-1.5 backdrop-blur-xs flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#FF4655] animate-pulse" />
+                  <div className="bg-[#0F1923]/90 border border-[#FF4655]/60 px-3 py-1.5 backdrop-blur-xs flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#FF4655] animate-pulse shrink-0" />
                     <span className="font-condensed font-bold text-xs tracking-wider text-white">
-                      SITE A • RUANG ACARA SMAN 1 BANTUL
+                      SITE A • RUANG YUDISTIRA
                     </span>
                   </div>
-                  <div className="bg-[#0F1923]/90 border border-status-ok/50 px-3 py-1.5 backdrop-blur-xs flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-status-ok" />
+                  <div className="bg-[#0F1923]/90 border border-status-ok/60 px-3 py-1.5 backdrop-blur-xs flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-status-ok shrink-0" />
                     <span className="font-condensed font-bold text-xs tracking-wider text-white">
                       SPAWN • PARKIR DALAM SEKOLAH
                     </span>
                   </div>
-                  <div className="bg-[#0F1923]/90 border border-[#00E5FF]/50 px-3 py-1.5 backdrop-blur-xs flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#00E5FF]" />
+                  <div className="bg-[#0F1923]/90 border border-[#00E5FF]/60 px-3 py-1.5 backdrop-blur-xs flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00E5FF] shrink-0" />
                     <span className="font-condensed font-bold text-xs tracking-wider text-white">
                       CHECKPOINT • MEJA REGISTRASI HUMAS
                     </span>
@@ -233,21 +239,54 @@ export function EventBriefingSection({
                     </span>
                   </div>
 
-                  {/* Blueprint Denah Image Container */}
-                  <div className="relative w-full aspect-square max-w-[170px] mx-auto bg-[#14202C] border border-[#00E5FF]/30 p-2 flex items-center justify-center">
-                    <Image
-                      src={
-                        useFallbackBlueprint
-                          ? "/images/valorant/map-ascent-minimap.png"
-                          : "/images/venue/school-blueprint.png"
-                      }
-                      alt="Denah Blueprint SMAN 1 Bantul"
-                      fill
-                      sizes="170px"
-                      className="object-contain filter invert opacity-90 p-1"
-                      onError={() => setUseFallbackBlueprint(true)}
-                    />
-                  </div>
+                  {/* Blueprint Denah Container / Slot Belum Ada */}
+                  {schoolBlueprintSrc && !useFallbackBlueprint ? (
+                    <div className="relative w-full aspect-square max-w-[180px] mx-auto bg-[#14202C] border border-[#00E5FF]/30 p-2 flex items-center justify-center">
+                      <Image
+                        src={schoolBlueprintSrc}
+                        alt="Denah Blueprint SMAN 1 Bantul"
+                        fill
+                        sizes="180px"
+                        className="object-contain filter invert opacity-90 p-1"
+                        onError={() => setUseFallbackBlueprint(true)}
+                      />
+                    </div>
+                  ) : (
+                    /* Placeholder Tactical Radar / Blueprint Grid Estetik */
+                    <div className="relative w-full aspect-square max-w-[180px] mx-auto bg-[#14202C] border border-[#00E5FF]/40 p-3 flex flex-col items-center justify-center text-center overflow-hidden valo-chamfer-sm group">
+                      {/* Latar Belakang Minimap Taktis Halus */}
+                      <Image
+                        src="/images/valorant/map-ascent-minimap.png"
+                        alt="Tactical Radar Grid"
+                        fill
+                        sizes="180px"
+                        className="object-contain filter invert opacity-20 p-2 pointer-events-none group-hover:scale-105 transition-transform duration-500"
+                      />
+
+                      {/* Radar Target Graphic & Keterangan */}
+                      <div className="relative z-10 flex flex-col items-center justify-center space-y-2 p-1">
+                        <div className="relative w-9 h-9 flex items-center justify-center">
+                          <span className="absolute inset-0 rounded-full border border-[#00E5FF]/40 animate-ping opacity-60" />
+                          <span className="relative w-2.5 h-2.5 rounded-full bg-[#00E5FF]/40 border border-[#00E5FF]" />
+                        </div>
+
+                        <div className="space-y-1">
+                          <span className="font-condensed font-bold text-[11px] text-[#00E5FF] tracking-[0.16em] uppercase block">
+                            DENAH LOKASI
+                          </span>
+                          <span className="font-mono text-[9px] text-white/90 bg-[#0F1923]/90 border border-white/15 px-2 py-0.5 rounded-none block">
+                            SEGERA HADIR (SIE KORLAP)
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Corner Taktis */}
+                      <div className="absolute top-1 left-1 w-2 h-2 border-t border-l border-[#00E5FF]/60 pointer-events-none" />
+                      <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-[#00E5FF]/60 pointer-events-none" />
+                      <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-[#00E5FF]/60 pointer-events-none" />
+                      <div className="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-[#00E5FF]/60 pointer-events-none" />
+                    </div>
+                  )}
 
                   {/* Alamat Resmi & Waktu (Bersih, Sesuai Notulensi) */}
                   <div className="space-y-2 pt-1 font-condensed">

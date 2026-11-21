@@ -202,13 +202,13 @@ export default async function TicketPage({
           {/* ── 1. HEADER TIKET UNIVERSAL VALORANT ── */}
           <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-[#243545] bg-[#111A24]/90">
             {/* Sisi Kiri: Logo Resmi Saba ExploIT + Identitas Mubes */}
-            <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 shrink-0">
+            <div className="flex items-center gap-3.5">
+              <div className="relative h-11 w-11 sm:h-12 sm:w-12 shrink-0">
                 <Image
                   src="/images/logo-saba-exploit.png"
                   alt="Logo Saba ExploIT"
                   fill
-                  sizes="40px"
+                  sizes="48px"
                   className="object-contain"
                   priority
                 />

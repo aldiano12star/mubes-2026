@@ -54,13 +54,13 @@ export function WebFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
           {/* ── KOLOM 1: IDENTITAS ACARA & ORGANISASI (5 cols) ── */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="relative h-11 w-11 shrink-0">
+            <div className="flex items-center gap-3.5">
+              <div className="relative h-12 w-12 shrink-0">
                 <Image
                   src="/images/logo-saba-exploit.png"
                   alt="Logo Saba ExploIT"
                   fill
-                  sizes="44px"
+                  sizes="48px"
                   className="object-contain"
                 />
               </div>

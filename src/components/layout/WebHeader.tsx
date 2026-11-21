@@ -14,22 +14,22 @@ export function WebHeader() {
         {/* Sisi Kiri: Logo + MUBES 2026 & Sub-label SABA EXPLOIT */}
         <Link
           href="/"
-          className="flex items-center gap-3 group focus:outline-hidden"
+          className="flex items-center gap-3 sm:gap-3.5 group focus:outline-hidden"
         >
           {!imgError ? (
-            <div className="relative h-9 w-9 shrink-0">
+            <div className="relative h-10 w-10 shrink-0">
               <Image
                 src="/images/logo-saba-exploit.png"
                 alt="Logo Saba ExploIT"
                 fill
-                sizes="36px"
+                sizes="40px"
                 className="object-contain"
                 priority
                 onError={() => setImgError(true)}
               />
             </div>
           ) : (
-            <div className="h-9 w-9 shrink-0 flex items-center justify-center font-display font-bold text-brand text-xl">
+            <div className="h-10 w-10 shrink-0 flex items-center justify-center font-display font-bold text-brand text-xl">
               SE
             </div>
           )}

@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { prisma } from "@/lib/prisma";
 import { EVENT_DEFAULTS } from "@/lib/constants";
 import { IntroCurtain } from "@/components/public/IntroCurtain";
@@ -60,6 +62,21 @@ export default async function PublicHomePage() {
     rundown = settings.rundownJson as unknown as RundownItem[];
   }
 
+  // 3. Deteksi fisik keberadaan foto dan denah sekolah di server
+  const venueDir = path.join(process.cwd(), "public", "images", "venue");
+  const schoolPhotoFile = path.join(venueDir, "school-photo.jpg");
+  const schoolBlueprintFile = path.join(venueDir, "school-blueprint.png");
+
+  const hasSchoolPhoto = fs.existsSync(schoolPhotoFile);
+  const hasSchoolBlueprint = fs.existsSync(schoolBlueprintFile);
+
+  const schoolPhotoSrc = hasSchoolPhoto
+    ? "/images/venue/school-photo.jpg"
+    : "/images/valorant/map-ascent-splash.png";
+  const schoolBlueprintSrc = hasSchoolBlueprint
+    ? "/images/venue/school-blueprint.png"
+    : null;
+
   return (
     <>
       {/* ── TACTICAL CURTAIN REVEAL (SEKALI PER SESI BROWSER) ── */}
@@ -98,6 +115,8 @@ export default async function PublicHomePage() {
           contactWhatsapp={
             settings?.contactWhatsapp ?? EVENT_DEFAULTS.contactWhatsapp
           }
+          schoolPhotoSrc={schoolPhotoSrc}
+          schoolBlueprintSrc={schoolBlueprintSrc}
         />
 
         {/* ── SEKSI 3: FORMULIR KONFIRMASI KEHADIRAN (RSVP LOCK IN) ── */}
