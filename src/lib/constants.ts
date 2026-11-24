@@ -13,30 +13,6 @@ export const DIVISIONS = [
 
 export type Division = (typeof DIVISIONS)[number];
 
-export const PUBLIC_GENERATIONS = [
-  "Gen 21",
-  "Gen 18",
-  "Gen 17",
-  "Gen 16",
-  "Gen 15",
-  "Gen 14",
-  "Gen 13",
-  "Gen 12",
-  "Gen 11",
-  "Gen 10",
-  "Gen 9",
-  "Gen 8",
-  "Gen 7",
-  "Gen 6",
-  "Gen 5",
-  "Gen 4",
-  "Gen 3",
-  "Gen 2",
-  "Gen 1",
-] as const;
-
-export type PublicGeneration = (typeof PUBLIC_GENERATIONS)[number];
-
 export const ALL_GENERATIONS = [
   "Gen 21",
   "Gen 20",
@@ -62,6 +38,9 @@ export const ALL_GENERATIONS = [
 ] as const;
 
 export type Generation = (typeof ALL_GENERATIONS)[number];
+
+export const PUBLIC_GENERATIONS = ALL_GENERATIONS;
+export type PublicGeneration = Generation;
 
 export const GENERATION_LABELS: Record<Generation, string> = {
   "Gen 21": "Gen 21 (Kelas 10 — Anggota Aktif)",

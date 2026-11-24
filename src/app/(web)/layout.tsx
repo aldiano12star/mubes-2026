@@ -1,7 +1,7 @@
 import React from "react";
 import { WebHeader } from "@/components/layout/WebHeader";
 import { WebFooter } from "@/components/layout/WebFooter";
-import { SmoothScrollProvider } from "@/components/public/SmoothScrollProvider";
+import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 
 export default function WebLayout({
   children,

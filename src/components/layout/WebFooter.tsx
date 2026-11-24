@@ -36,7 +36,7 @@ export function WebFooter() {
   const navLinks = [
     { label: "Beranda", href: "/#hero-section" },
     { label: "Susunan Acara", href: "/#rundown-section" },
-    { label: "Denah & Lokasi", href: "/#denah-section" },
+    { label: "Lokasi Acara", href: "/#denah-section" },
     { label: "Konfirmasi Kehadiran", href: "/#rsvp-section" },
     { label: "Wall of Messages", href: "/#messages-section" },
     { label: "Portal Panitia", href: "/panitia/login" },
@@ -44,7 +44,7 @@ export function WebFooter() {
 
   return (
     <footer className="w-full border-t border-[#2A3B4C]/70 bg-[#0A1118] text-ink-muted mt-auto relative">
-      {/* Garis Aksen Taktis Atas: Merah & Cyan Neon */}
+      {/* Garis Aksen Atas */}
       <div aria-hidden="true" className="h-[2px] w-full flex">
         <span className="w-3/5 h-full bg-[#FF4655]" />
         <span className="w-2/5 h-full bg-[#00E5FF]" />
@@ -52,7 +52,7 @@ export function WebFooter() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
-          {/* ── KOLOM 1: IDENTITAS ACARA & ORGANISASI (5 cols) ── */}
+          {/* KOLOM 1: IDENTITAS ACARA & ORGANISASI */}
           <div className="lg:col-span-5 space-y-4">
             <div className="flex items-center gap-3.5">
               <div className="relative h-12 w-12 shrink-0">
@@ -75,7 +75,7 @@ export function WebFooter() {
             </div>
 
             <p className="font-sans text-xs sm:text-sm text-ink-muted leading-relaxed max-w-md">
-              Musyawarah Besar Saba ExploIT 2026 menjadi forum musyawarah tertinggi, evaluasi proker kepengurusan, penyelarasan AD/ART, dan temu kangen lintas generasi mulai dari Gen 1 hingga Gen 21.
+              Musyawarah Besar Saba ExploIT 2026 menjadi forum musyawarah organisasi dan temu kangen anggota aktif serta alumni lintas generasi.
             </p>
 
             <div className="space-y-2 pt-2">
@@ -88,18 +88,18 @@ export function WebFooter() {
               <div className="flex items-center gap-2.5 text-xs text-ink-subtle">
                 <ShieldAlert className="h-4 w-4 text-[#00E5FF] shrink-0" />
                 <span className="font-mono text-[11px] text-[#00E5FF] tracking-wider uppercase">
-                  SECURITY CLEARANCE: TACTICAL EVENT PROTOCOL
+                  STATUS: PROTOKOL TERBUKA
                 </span>
               </div>
             </div>
           </div>
 
-          {/* ── KOLOM 2: NAVIGASI TAKTIS (3 cols) ── */}
+          {/* KOLOM 2: NAVIGASI */}
           <div className="lg:col-span-3 space-y-3">
             <div className="flex items-center gap-2 border-b border-edge/60 pb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#FF4655]" />
               <h4 className="font-condensed font-bold text-xs text-ink tracking-[0.2em] uppercase">
-                NAVIGASI TAKTIS
+                NAVIGASI
               </h4>
             </div>
 
@@ -117,7 +117,7 @@ export function WebFooter() {
             </nav>
           </div>
 
-          {/* ── KOLOM 3: INFORMASI JADWAL & HUBUNGI HUMAS (4 cols) ── */}
+          {/* KOLOM 3: JADWAL & NARAHUBUNG */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-2 border-b border-edge/60 pb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#00E5FF]" />
@@ -126,7 +126,6 @@ export function WebFooter() {
               </h4>
             </div>
 
-            {/* Kotak Jadwal Ringkas */}
             <div className="p-3.5 bg-[#14202C] border border-[#243545] space-y-1.5 text-xs">
               <div className="flex items-center gap-2 text-ink font-semibold">
                 <Calendar className="h-3.5 w-3.5 text-brand shrink-0" />
@@ -138,7 +137,6 @@ export function WebFooter() {
               </div>
             </div>
 
-            {/* Tautan Instagram & WhatsApp Panitia */}
             <div className="space-y-2 pt-1">
               <a
                 href="https://instagram.com/sabaexploit"
@@ -171,15 +169,15 @@ export function WebFooter() {
           </div>
         </div>
 
-        {/* ── BOTTOM BAR COPYRIGHT & METADATA ── */}
+        {/* BOTTOM BAR COPYRIGHT */}
         <div className="mt-12 pt-6 border-t border-[#243545] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-ink-subtle font-mono">
           <div className="text-center sm:text-left">
             &copy; {currentYear} Saba ExploIT — SMA Negeri 1 Bantul. All rights reserved.
           </div>
           <div className="text-center sm:text-right flex items-center gap-2">
-            <span className="text-[#FF4655] font-bold">PROTOCOL: VALORANT</span>
+            <span className="text-[#FF4655] font-bold">MUBES 2026</span>
             <span>•</span>
-            <span>GEN 19 & GEN 20 ORGANIZING COMMITTEE</span>
+            <span>PANITIA GEN 19 & GEN 20</span>
           </div>
         </div>
       </div>

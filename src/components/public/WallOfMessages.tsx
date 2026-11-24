@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { MessageSquare, Shield, Radio, Sparkles } from "lucide-react";
 
 export interface PublicMessageItem {
@@ -47,9 +47,7 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
     return defaultTabs;
   }, [hasSeniorAlumni]);
 
-  // Derived state murni tanpa duplikasi ke useState terpisah (Hukum Derived State)
-  // Perlindungan Anonimitas Total: Pesan dengan isAnonymous === true HANYA muncul di tab "Semua",
-  // agar identitas generasi pengirim tidak bocor melalui filter tab spesifik.
+  // Derived state murni tanpa duplikasi ke useState terpisah
   const filteredMessages = useMemo(() => {
     if (selectedGen === "Semua") {
       return messages;
@@ -87,12 +85,12 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
       className="relative bg-[#111A24] text-white py-16 sm:py-24 scroll-mt-20 border-t border-edge/80"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Editorial Section Header */}
+        {/* Section Header */}
         <div className="flex items-center gap-3">
           <span className="w-8 h-[2px] bg-[#FF4655]" />
-          <span className="font-condensed font-bold text-xs tracking-[0.22em] text-[#FF4655] uppercase">
-            CROSS-GEN TACTICAL COMMS • WALL OF MESSAGES
-          </span>
+          <h2 className="font-condensed font-bold text-xs tracking-[0.22em] text-[#FF4655] uppercase">
+            PESAN & HARAPAN
+          </h2>
           <span className="h-px flex-1 bg-edge/60" />
         </div>
 
@@ -102,9 +100,9 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Radio className="h-5 w-5 text-brand" />
-                <h2 className="font-display font-bold uppercase text-2xl sm:text-3xl text-white tracking-wide">
-                  TRANSMISI PESAN & NOSTALGIA
-                </h2>
+                <h3 className="font-display font-bold uppercase text-2xl sm:text-3xl text-white tracking-wide">
+                  WALL OF MESSAGES
+                </h3>
               </div>
               <p className="font-sans text-xs sm:text-sm text-ink-muted">
                 Pesan dan harapan dari rekan-rekan anggota aktif serta alumni Saba ExploIT lintas generasi.
@@ -112,7 +110,7 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto font-mono text-xs text-ink-subtle bg-[#0F1923] px-3.5 py-2 border border-edge">
-              <span>TOTAL TRANSMISI:</span>
+              <span>TOTAL PESAN:</span>
               <span className="text-brand font-bold tabular-nums">
                 {messages.length}
               </span>
@@ -122,7 +120,7 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
           {/* Tab Filter Generasi */}
           <div className="space-y-2">
             <span className="font-condensed font-bold text-[11px] tracking-[0.2em] text-ink-subtle uppercase block">
-              FILTER GENERASI PESAN
+              FILTER GENERASI
             </span>
             <div
               role="tablist"
@@ -132,11 +130,13 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
               {filterTabs.map((tab) => {
                 const isActive = selectedGen === tab;
                 return (
-                  <button
+                  <motion.button
                     key={tab}
                     type="button"
                     role="tab"
                     aria-selected={isActive}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 28 }}
                     onClick={() => setSelectedGen(tab)}
                     className={`min-h-[44px] px-4 py-2 text-xs font-condensed uppercase tracking-wider valo-chamfer-sm border transition-colors cursor-pointer flex items-center gap-1.5 ${
                       isActive
@@ -145,13 +145,13 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
                     }`}
                   >
                     <span>{tab}</span>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
           </div>
 
-          {/* Daftar Pesan Grid dengan Framer Motion Layout Animation */}
+          {/* Daftar Pesan Grid */}
           {filteredMessages.length > 0 ? (
             <motion.div
               layout
@@ -171,7 +171,8 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.25 }}
+                      whileTap={{ scale: 0.99 }}
+                      transition={{ duration: 0.22 }}
                       className={`border border-edge bg-[#0F1923]/90 p-5 flex flex-col justify-between space-y-4 hover:border-edge-strong transition-colors ${
                         item.isAnonymous
                           ? "border-l-4 border-l-[#00E5FF]"
@@ -180,7 +181,7 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
                           : "border-l-4 border-l-[#ECE8E1]"
                       }`}
                     >
-                      {/* Bagian Atas: Metadata Identitas (Anti-Flex-Wrap Protection) */}
+                      {/* Bagian Atas: Metadata Identitas */}
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between gap-2 border-b border-edge/60 pb-2.5">
                           <div className="min-w-0 flex-1">
@@ -200,7 +201,7 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
                           </span>
                         </div>
 
-                        {/* Baris Metadata Horizontal (Anti-Flex-Wrap Law & Anonimitas Total) */}
+                        {/* Baris Metadata Horizontal */}
                         {item.isAnonymous ? (
                           <div className="min-w-0 flex-1 flex flex-row items-center gap-2 whitespace-nowrap truncate font-mono text-[11px] text-[#00E5FF]">
                             <span className="font-semibold uppercase tracking-wider">
@@ -208,7 +209,7 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
                             </span>
                             <span className="text-ink-subtle">•</span>
                             <span className="text-ink-subtle tracking-widest">
-                              CLASSIFIED
+                              ANONIM
                             </span>
                           </div>
                         ) : (
@@ -231,7 +232,7 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
 
                       {/* Footer Kartu Pesan */}
                       <div className="border-t border-edge/40 pt-2 flex items-center justify-between font-mono text-[10px] text-ink-subtle">
-                        <span>BROADCAST VERIFIED</span>
+                        <span>TERVERIFIKASI</span>
                         <MessageSquare className="h-3 w-3 text-ink-subtle" />
                       </div>
                     </motion.div>
@@ -244,12 +245,12 @@ export function WallOfMessages({ messages }: WallOfMessagesProps) {
               <div className="flex justify-center">
                 <Sparkles className="h-8 w-8 text-ink-subtle" />
               </div>
-              <h3 className="font-display font-bold uppercase text-base text-white tracking-wide">
-                BELUM ADA TRANSMISI PESAN
-              </h3>
+              <h4 className="font-display font-bold uppercase text-base text-white tracking-wide">
+                BELUM ADA PESAN
+              </h4>
               <p className="font-sans text-xs text-ink-muted max-w-md mx-auto leading-relaxed">
-                Belum ada pesan yang disiarkan untuk filter{" "}
-                <strong className="text-brand">{selectedGen}</strong>. Jadilah yang pertama mengirimkan pesan & harapan melalui formulir di atas!
+                Belum ada pesan untuk generasi{" "}
+                <strong className="text-brand">{selectedGen}</strong>. Kirimkan pesan Anda melalui formulir di atas!
               </p>
             </div>
           )}

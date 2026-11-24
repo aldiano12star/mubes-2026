@@ -98,7 +98,7 @@ export default async function TicketPage({
       <div className="flex items-center gap-3">
         <span className="w-8 h-[2px] bg-[#FF4655]" />
         <span className="font-condensed font-bold text-xs tracking-[0.22em] text-[#FF4655] uppercase">
-          VALORANT TACTICAL BOARDING PASS • MUBES 2026
+          E-TICKET RESMI • MUBES 2026
         </span>
         <span className="h-px flex-1 bg-edge" />
       </div>
@@ -124,7 +124,7 @@ export default async function TicketPage({
           <CheckCircle2 className="h-5 w-5 text-status-ok shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
             <h2 className="font-condensed font-bold uppercase text-sm sm:text-base text-status-ok tracking-wide">
-              STATUS: TERVERIFIKASI HADIR (CHECKED-IN)
+              STATUS: TERVERIFIKASI HADIR
             </h2>
             <p className="font-sans text-xs text-ink-muted leading-relaxed mt-0.5">
               Peserta telah berhasil melakukan pemindaian kehadiran di meja registrasi Ruang Yudistira

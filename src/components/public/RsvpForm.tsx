@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Lock,
   MessageSquare,
@@ -14,13 +14,14 @@ import {
   CheckCircle2,
   Sparkles,
   Ticket,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import { toast } from "@/components/ui/Toast";
 import { registerParticipantAction } from "@/actions/registration.actions";
 import {
   DIVISIONS,
   PUBLIC_GENERATIONS,
-  GENERATION_LABELS,
   EVENT_DEFAULTS,
   type Division,
   type PublicGeneration,
@@ -46,8 +47,37 @@ export function RsvpForm({
   const [message, setMessage] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
 
+  // Custom Dropdown State
+  const [isGenDropdownOpen, setIsGenDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Tutup dropdown saat klik di luar area atau menekan Escape
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsGenDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsGenDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,8 +134,6 @@ export function RsvpForm({
       }
 
       toast.success(response.message);
-
-      // Redirect langsung ke halaman tiket baru
       router.push(`/tiket/${response.data.ticketCode}`);
     } catch (err) {
       console.error("[RSVP Form Error]:", err);
@@ -120,24 +148,20 @@ export function RsvpForm({
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="flex items-center gap-3 mb-8">
             <span className="w-8 h-[2px] bg-[#FF4655]" />
-            <span className="font-condensed font-bold text-xs tracking-[0.22em] text-[#FF4655] uppercase">
-              REGISTRASI AGENT • RSVP CLOSED
-            </span>
+            <h2 className="font-condensed font-bold text-xs tracking-[0.22em] text-[#FF4655] uppercase">
+              KONFIRMASI KEHADIRAN
+            </h2>
           </div>
 
           <div className="border border-edge-strong bg-[#14202C] p-8 sm:p-12 valo-chamfer text-center space-y-4">
             <div className="flex justify-center">
               <Lock className="h-12 w-12 text-[#FF4655]" />
             </div>
-            <h2 className="font-display font-bold uppercase text-2xl sm:text-3xl text-white tracking-wide">
+            <h3 className="font-display font-bold uppercase text-2xl sm:text-3xl text-white tracking-wide">
               PENDAFTARAN ONLINE TELAH DITUTUP
-            </h2>
+            </h3>
             <p className="font-sans text-sm text-ink-muted leading-relaxed max-w-xl mx-auto">
-              Jalur registrasi online telah ditutup oleh panitia Mubes Saba ExploIT.
-              Bagi anggota aktif maupun alumni yang ingin hadir, silakan langsung datang ke{" "}
-              <strong className="text-white">Ruang Yudistira SMAN 1 Bantul</strong> pada{" "}
-              <strong className="text-white">Senin, 28 Desember 2026 pukul 07.30 WIB</strong> untuk melakukan pendaftaran{" "}
-              <strong className="text-[#FF4655]">On-The-Spot (OTS)</strong> di meja registrasi.
+              Pendaftaran online ditutup. Silakan datang langsung ke Ruang Yudistira SMAN 1 Bantul pada hari-H untuk registrasi On-The-Spot (OTS).
             </p>
           </div>
         </div>
@@ -148,9 +172,15 @@ export function RsvpForm({
   // Live Card Preview Derived States
   const previewName = fullName.trim() || "AGENT CALLSIGN";
   const previewDivision = division || "UNASSIGNED DIV";
-  const previewGenLabel = generation
-    ? GENERATION_LABELS[generation]
-    : "COHORT STANDBY";
+
+  // Penentuan status keanggotaan otomatis
+  const isMemberActive =
+    generation === "Gen 19" || generation === "Gen 20" || generation === "Gen 21";
+  const memberStatusBadge = generation
+    ? isMemberActive
+      ? "ANGGOTA AKTIF"
+      : "ALUMNI"
+    : "BELUM DIPILIH";
 
   return (
     <section
@@ -158,18 +188,18 @@ export function RsvpForm({
       className="relative bg-[#0F1923] text-white py-16 sm:py-24 scroll-mt-20 border-t border-edge/80"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        {/* Editorial Section Header */}
+        {/* Section Header */}
         <div className="flex items-center gap-3">
           <span className="w-8 h-[2px] bg-[#FF4655]" />
-          <span className="font-condensed font-bold text-xs tracking-[0.22em] text-[#FF4655] uppercase">
-            REGISTRASI AGENT • LOCK IN YOUR SLOT
-          </span>
+          <h2 className="font-condensed font-bold text-xs tracking-[0.22em] text-[#FF4655] uppercase">
+            KONFIRMASI KEHADIRAN
+          </h2>
           <span className="h-px flex-1 bg-edge/60" />
         </div>
 
-        {/* 2-Column Responsive Layout: Left Live Player Card (Sticky) + Right Form */}
+        {/* 2-Column Responsive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* ════ KOLOM KIRI (STICKY): LIVE VALORANT PLAYER CARD PREVIEW ════ */}
+          {/* ════ KOLOM KIRI (STICKY): LIVE PLAYER CARD PREVIEW ════ */}
           <div className="lg:col-span-5 sticky top-24 space-y-4">
             <div className="flex items-center justify-between">
               <span className="font-condensed font-bold text-xs tracking-[0.16em] text-ink-muted uppercase">
@@ -183,7 +213,7 @@ export function RsvpForm({
 
             {/* Tactical Player Card Container */}
             <div className="relative w-full aspect-[9/14] max-w-[340px] mx-auto bg-[#14202C] border-2 border-edge hover:border-brand/60 transition-colors valo-chamfer overflow-hidden shadow-2xl flex flex-col justify-between p-5 select-none">
-              {/* Card Background Texture (Map Ascent Splash) */}
+              {/* Card Background Texture */}
               <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-luminosity">
                 <Image
                   src="/images/valorant/map-ascent-splash.png"
@@ -213,27 +243,41 @@ export function RsvpForm({
                 </span>
               </div>
 
-              {/* Middle Section: Player Portrait / Tactical Emblem */}
+              {/* Middle Section: Player Identity */}
               <div className="relative z-10 my-auto flex flex-col items-center justify-center text-center space-y-3 py-6">
                 <div className="relative w-20 h-20 rounded-full border-2 border-[#FF4655] bg-black/60 flex items-center justify-center shadow-lg">
                   <ShieldCheck className="w-10 h-10 text-[#FF4655]" />
                 </div>
 
-                <div className="space-y-1 w-full px-2">
+                <div className="space-y-1.5 w-full px-2">
                   <span className="font-display font-bold uppercase text-2xl sm:text-3xl text-white tracking-wide block truncate drop-shadow-md">
                     {previewName}
                   </span>
-                  <div className="flex items-center justify-center gap-2">
+
+                  <div className="flex items-center justify-center gap-2 flex-wrap">
                     <span className="px-2 py-0.5 bg-[#FF4655]/20 border border-[#FF4655]/50 font-condensed font-bold text-xs uppercase text-[#FF4655] tracking-wider">
                       {previewDivision}
                     </span>
-                    <span className="px-2 py-0.5 bg-white/10 border border-white/20 font-condensed font-bold text-xs uppercase text-white/90 tracking-wider truncate max-w-[170px]">
-                      {generation ? generation : "COHORT"}
+                    <span className="px-2 py-0.5 bg-white/10 border border-white/20 font-condensed font-bold text-xs uppercase text-white/90 tracking-wider">
+                      {generation ? generation : "GENERASI STANDBY"}
                     </span>
                   </div>
-                  <div className="pt-1 flex items-center justify-center">
+
+                  {/* Badge Status Keanggotaan Otomatis */}
+                  <div className="pt-1 flex items-center justify-center gap-2">
+                    <span
+                      className={`px-2.5 py-0.5 font-condensed font-bold text-[11px] tracking-wider uppercase border ${
+                        !generation
+                          ? "bg-white/5 border-white/20 text-white/50"
+                          : isMemberActive
+                          ? "bg-[#00E5FF]/15 border-[#00E5FF]/50 text-[#00E5FF]"
+                          : "bg-[#ECE8E1]/15 border-[#ECE8E1]/40 text-[#ECE8E1]"
+                      }`}
+                    >
+                      {memberStatusBadge}
+                    </span>
                     <span className="px-2 py-0.5 bg-[#00E5FF]/10 border border-[#00E5FF]/40 font-mono text-[10px] text-[#00E5FF] font-semibold tracking-wider uppercase">
-                      {entryFeeLabel} • {entryFeeAmount}
+                      {entryFeeAmount}
                     </span>
                   </div>
                 </div>
@@ -242,30 +286,38 @@ export function RsvpForm({
               {/* Bottom Card HUD: Live Verification Status */}
               <div className="relative z-10 border-t border-white/10 pt-3 space-y-1.5 font-mono text-[10px]">
                 <div className="flex items-center justify-between text-white/60">
-                  <span>COHORT STATUS:</span>
-                  <span className="text-white truncate max-w-[180px]">
-                    {previewGenLabel}
+                  <span>STATUS ANGGOTA:</span>
+                  <span
+                    className={`font-bold tracking-wider ${
+                      !generation
+                        ? "text-white/40"
+                        : isMemberActive
+                        ? "text-[#00E5FF]"
+                        : "text-[#ECE8E1]"
+                    }`}
+                  >
+                    {memberStatusBadge}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-white/60">TACTICAL LOCK:</span>
+                  <span className="text-white/60">VERIFIKASI:</span>
                   <span className="text-status-ok font-bold flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3" />
-                    READY TO LOCK IN
+                    SIAP DIDAFTARKAN
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ════ KOLOM KANAN: FORMULIR REGISTRASI BERGAYA BUY MENU ════ */}
+          {/* ════ KOLOM KANAN: FORMULIR KEHADIRAN ════ */}
           <div className="lg:col-span-7 border border-edge bg-[#14202C] valo-chamfer p-6 sm:p-10 space-y-8 shadow-xl">
             <div className="border-b border-edge/80 pb-4 space-y-1">
-              <h2 className="font-display font-bold uppercase text-2xl sm:text-3xl text-white tracking-wide">
-                FORMULIR REGISTRASI AGENT
-              </h2>
+              <h3 className="font-display font-bold uppercase text-2xl sm:text-3xl text-white tracking-wide">
+                FORMULIR KEHADIRAN
+              </h3>
               <p className="font-sans text-xs sm:text-sm text-ink-muted leading-relaxed">
-                Lengkapi formulir di bawah ini untuk mengambil E-Ticket resmi. Satu nomor WhatsApp hanya dapat didaftarkan satu kali (anti-duplikasi).
+                Isi data berikut untuk mendapatkan E-Ticket resmi. Satu nomor WhatsApp hanya dapat didaftarkan satu kali.
               </p>
             </div>
 
@@ -284,7 +336,7 @@ export function RsvpForm({
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Contoh: Muhammad Fauzan / Raka Pratama"
+                  placeholder="Contoh: Muhammad Fauzan"
                   className="w-full min-h-[44px] px-4 py-2.5 bg-[#0F1923] border border-edge hover:border-edge-strong focus:border-[#FF4655] focus:outline-hidden text-white font-sans text-sm transition-colors placeholder:text-ink-subtle"
                 />
                 {fieldErrors.fullName && (
@@ -315,7 +367,7 @@ export function RsvpForm({
                 <p className="font-sans text-[11px] text-ink-muted flex items-center gap-1.5">
                   <Info className="h-3.5 w-3.5 text-ink-subtle shrink-0" />
                   <span>
-                    Format nomor Indonesia (08... / 628...). Tautan E-Ticket QR akan otomatis dikirimkan ke nomor WhatsApp ini.
+                    Format Indonesia (08... / 628...). Tautan E-Ticket QR akan otomatis dikirimkan ke nomor ini.
                   </span>
                 </p>
                 {fieldErrors.whatsapp && (
@@ -326,7 +378,7 @@ export function RsvpForm({
                 )}
               </div>
 
-              {/* 3. Pilihan Divisi (Buy Menu Grid with Sliding Red Highlight) */}
+              {/* 3. Pilihan Divisi */}
               <div className="space-y-2">
                 <label className="block font-condensed font-bold text-xs tracking-[0.16em] text-white uppercase">
                   DIVISI SABA EXPLOIT <span className="text-[#FF4655]">*</span>
@@ -339,11 +391,13 @@ export function RsvpForm({
                   {DIVISIONS.map((div) => {
                     const isSelected = division === div;
                     return (
-                      <button
+                      <motion.button
                         key={div}
                         type="button"
                         role="radio"
                         aria-checked={isSelected}
+                        whileTap={{ scale: 0.96 }}
+                        transition={{ type: "spring", stiffness: 420, damping: 28 }}
                         onClick={() => setDivision(div)}
                         className={`min-h-[44px] relative px-3 py-2 text-xs font-condensed uppercase tracking-wider border transition-all text-left flex items-center justify-between cursor-pointer ${
                           isSelected
@@ -366,7 +420,7 @@ export function RsvpForm({
                         {isSelected && (
                           <span className="relative z-10 h-1.5 w-1.5 rounded-full bg-white shrink-0 ml-1.5" />
                         )}
-                      </button>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -378,61 +432,83 @@ export function RsvpForm({
                 )}
               </div>
 
-              {/* 4. Pilihan Generasi (Tactical High-Contrast <select> with <optgroup>) */}
-              <div className="space-y-2">
+              {/* 4. Custom Dropdown Generasi Taktis (Tanpa Kata Cohort & Tanpa Teks Alumni/Aktif di Opsi) */}
+              <div className="space-y-2" ref={dropdownRef}>
                 <label
-                  htmlFor="generation-select"
+                  htmlFor="generation-trigger"
                   className="block font-condensed font-bold text-xs tracking-[0.16em] text-white uppercase"
                 >
-                  GENERASI (COHORT) <span className="text-[#FF4655]">*</span>
+                  GENERASI <span className="text-[#FF4655]">*</span>
                 </label>
+
                 <div className="relative">
-                  <select
-                    id="generation-select"
-                    value={generation}
-                    onChange={(e) =>
-                      setGeneration(e.target.value as PublicGeneration)
-                    }
-                    className="w-full min-h-[44px] px-4 py-2.5 bg-[#0F1923] border border-edge hover:border-edge-strong focus:border-[#FF4655] focus:outline-hidden text-white font-condensed font-semibold text-sm tracking-wider uppercase transition-colors appearance-none cursor-pointer"
+                  {/* Trigger Button */}
+                  <button
+                    id="generation-trigger"
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={isGenDropdownOpen}
+                    onClick={() => setIsGenDropdownOpen((prev) => !prev)}
+                    className={`w-full min-h-[44px] px-4 py-2.5 bg-[#0F1923] border text-left flex items-center justify-between transition-colors cursor-pointer ${
+                      isGenDropdownOpen
+                        ? "border-[#FF4655]"
+                        : "border-[#2A3B4C] hover:border-edge-strong"
+                    }`}
                   >
-                    <option value="" disabled className="bg-[#0F1923] text-ink-subtle">
-                      -- PILIH GENERASI ANDA --
-                    </option>
-
-                    <optgroup
-                      label="Anggota Aktif (Kelas 10)"
-                      className="bg-[#14202C] text-[#FF4655] font-bold"
+                    <span
+                      className={`font-condensed font-semibold text-sm tracking-wider uppercase truncate ${
+                        generation ? "text-white" : "text-ink-subtle"
+                      }`}
                     >
-                      <option
-                        value="Gen 21"
-                        className="bg-[#0F1923] text-white font-sans py-1"
+                      {generation ? generation : "PILIH GENERASI ANDA"}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 text-[#FF4655] shrink-0 transition-transform duration-200 ${
+                        isGenDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {/* Panel Dropdown Menu */}
+                  <AnimatePresence>
+                    {isGenDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        role="listbox"
+                        className="absolute z-50 left-0 right-0 top-full mt-1 bg-[#131E2A] border border-[#2A3B4C] shadow-2xl max-h-60 overflow-y-auto divide-y divide-[#2A3B4C]/40"
                       >
-                        {GENERATION_LABELS["Gen 21"]}
-                      </option>
-                    </optgroup>
-
-                    <optgroup
-                      label="Alumni Saba ExploIT (Gen 18 – Gen 1)"
-                      className="bg-[#14202C] text-white font-bold"
-                    >
-                      {PUBLIC_GENERATIONS.filter((g) => g !== "Gen 21").map((g) => (
-                        <option
-                          key={g}
-                          value={g}
-                          className="bg-[#0F1923] text-white font-sans py-1"
-                        >
-                          {GENERATION_LABELS[g]}
-                        </option>
-                      ))}
-                    </optgroup>
-                  </select>
-
-                  {/* Custom Arrow */}
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#FF4655]">
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                    </svg>
-                  </div>
+                        {PUBLIC_GENERATIONS.map((gen) => {
+                          const isSelected = generation === gen;
+                          return (
+                            <motion.button
+                              key={gen}
+                              type="button"
+                              role="option"
+                              aria-selected={isSelected}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => {
+                                setGeneration(gen);
+                                setIsGenDropdownOpen(false);
+                              }}
+                              className={`w-full min-h-[44px] px-4 py-2.5 text-left flex items-center justify-between transition-colors cursor-pointer font-condensed text-sm tracking-wider uppercase ${
+                                isSelected
+                                  ? "bg-brand/20 text-[#FF4655] font-bold"
+                                  : "text-white/90 hover:bg-[#0F1923] hover:text-white"
+                              }`}
+                            >
+                              <span>{gen}</span>
+                              {isSelected && (
+                                <Check className="h-4 w-4 text-[#FF4655] shrink-0" />
+                              )}
+                            </motion.button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {fieldErrors.generation && (
@@ -451,7 +527,7 @@ export function RsvpForm({
                     className="font-condensed font-bold text-xs tracking-[0.16em] text-white uppercase flex items-center gap-1.5"
                   >
                     <MessageSquare className="h-3.5 w-3.5 text-[#FF4655]" />
-                    <span>PESAN & HARAPAN UNTUK MUBES (OPSIONAL)</span>
+                    <span>PESAN & HARAPAN (OPSIONAL)</span>
                   </label>
                   <span className="font-mono text-[11px] text-ink-subtle tabular-nums">
                     {message.length}/300
@@ -463,7 +539,7 @@ export function RsvpForm({
                   maxLength={300}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Tuliskan harapan untuk kemajuan Saba ExploIT atau kenangan berkesan selama berorganisasi..."
+                  placeholder="Tuliskan harapan atau kenangan berkesan selama di Saba ExploIT..."
                   className="w-full p-3 bg-[#0F1923] border border-edge hover:border-edge-strong focus:border-[#FF4655] focus:outline-hidden text-white font-sans text-sm leading-relaxed transition-colors placeholder:text-ink-subtle resize-none"
                 />
                 {fieldErrors.message && (
@@ -485,7 +561,7 @@ export function RsvpForm({
                   />
                   <div className="min-w-0 flex-1">
                     <span className="font-condensed font-bold uppercase text-xs sm:text-sm text-white tracking-wide block">
-                      TAMPILKAN SEBAGAI AGENT RAHASIA (ANONIM)
+                      KIRIM SEBAGAI ANONIM
                     </span>
                     <span className="font-sans text-xs text-ink-muted leading-relaxed block mt-0.5">
                       Pesan Anda di Wall of Messages akan ditampilkan sebagai{" "}
@@ -495,7 +571,7 @@ export function RsvpForm({
                 </label>
               </div>
 
-              {/* Catatan Transparan Biaya Kontribusi Radiant Pass */}
+              {/* Catatan Biaya Kontribusi */}
               <div className="p-3 bg-[#0F1923] border border-[#00E5FF]/30 flex items-start gap-2.5 text-xs text-ink-muted">
                 <Ticket className="h-4 w-4 text-[#00E5FF] shrink-0 mt-0.5" />
                 <div className="leading-relaxed">
@@ -503,34 +579,36 @@ export function RsvpForm({
                     KONTRIBUSI {entryFeeLabel} ({entryFeeAmount}):
                   </span>
                   <span>
-                    Biaya kontribusi peserta dibayarkan saat registrasi di lokasi / sesuai arahan panitia (termasuk konsumsi & merchandise resmi).
+                    Biaya dibayarkan saat registrasi di lokasi (sudah termasuk konsumsi dan suvenir resmi).
                   </span>
                 </div>
               </div>
 
-              {/* 7. Tombol Submit (Riot Double-Border CTA) */}
+              {/* 7. Tombol Submit */}
               <div className="pt-2">
-                <button
+                <motion.button
                   type="submit"
                   disabled={isSubmitting}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 28 }}
                   className="riot-btn-frame w-full min-h-[52px] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <span className="riot-btn-inner flex items-center justify-center gap-2.5 text-base sm:text-lg">
                     {isSubmitting ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        <span>MEMPROSES PROTOCOL LOCK IN...</span>
+                        <span>MEMPROSES REGISTRASI...</span>
                       </>
                     ) : (
                       <>
                         <ShieldCheck className="h-5 w-5" />
-                        <span>LOCK IN & AMBIL E-TICKET</span>
+                        <span>KONFIRMASI & AMBIL E-TICKET</span>
                       </>
                     )}
                   </span>
-                </button>
+                </motion.button>
                 <p className="font-mono text-[11px] text-ink-subtle text-center mt-3">
-                  ANTI-DUPLICATE SYSTEM: 1 NOMOR WHATSAPP = 1 TIKET AKTIF
+                  SISTEM ANTI-DUPLIKASI: 1 NOMOR WHATSAPP = 1 TIKET
                 </p>
               </div>
             </form>

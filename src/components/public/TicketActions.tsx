@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion } from "motion/react";
 import {
   Download,
   Copy,
@@ -24,7 +25,6 @@ export function TicketActions({ ticketCode, hasWhatsapp }: TicketActionsProps) {
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
-  // Efek hitung mundur cooldown 60 detik
   useEffect(() => {
     if (cooldown <= 0) return;
 
@@ -66,7 +66,6 @@ export function TicketActions({ ticketCode, hasWhatsapp }: TicketActionsProps) {
         setCooldown(60);
       } else {
         toast.error(response.error);
-        // Jika server mengembalikan sisa detik cooldown
         const match = response.error.match(/(\d+)\s*detik/i);
         if (match && match[1]) {
           const seconds = parseInt(match[1], 10);
@@ -90,20 +89,24 @@ export function TicketActions({ ticketCode, hasWhatsapp }: TicketActionsProps) {
     <div className="space-y-6 pt-2">
       {/* Tombol-tombol Aksi Utama */}
       <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3">
-        {/* 1. Tombol Download PNG (Aksi Primer) */}
-        <a
+        {/* 1. Tombol Unduh E-Ticket (Aksi Primer) */}
+        <motion.a
           href={downloadUrl}
           download={downloadFileName}
+          whileTap={{ scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 420, damping: 28 }}
           className="w-full sm:w-auto min-h-[44px] px-6 py-3 valo-chamfer bg-brand hover:bg-brand-hover text-brand-ink font-display font-bold text-sm tracking-widest uppercase inline-flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
         >
           <Download className="h-4 w-4 shrink-0" />
-          <span>DOWNLOAD E-TICKET (PNG)</span>
-        </a>
+          <span>UNDUH E-TICKET</span>
+        </motion.a>
 
         {/* 2. Tombol Salin Tautan Tiket */}
-        <button
+        <motion.button
           type="button"
           onClick={handleCopyLink}
+          whileTap={{ scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 420, damping: 28 }}
           className="w-full sm:w-auto min-h-[44px] px-5 py-3 border border-edge hover:border-edge-strong bg-card hover:bg-card-elevated text-ink font-mono text-xs uppercase tracking-wider inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
         >
           {copied ? (
@@ -117,14 +120,16 @@ export function TicketActions({ ticketCode, hasWhatsapp }: TicketActionsProps) {
               <span>SALIN TAUTAN TIKET</span>
             </>
           )}
-        </button>
+        </motion.button>
 
-        {/* 3. Tombol Kirim Ulang ke WhatsApp (Jika Memiliki Nomor WA) */}
+        {/* 3. Tombol Kirim Ulang ke WhatsApp */}
         {hasWhatsapp && (
-          <button
+          <motion.button
             type="button"
             disabled={cooldown > 0 || isResending}
             onClick={handleResendWhatsapp}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 420, damping: 28 }}
             className="w-full sm:w-auto min-h-[44px] px-5 py-3 border border-edge hover:border-edge-strong bg-card hover:bg-card-elevated disabled:opacity-50 disabled:cursor-not-allowed text-ink font-mono text-xs uppercase tracking-wider inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             {isResending ? (
@@ -145,7 +150,7 @@ export function TicketActions({ ticketCode, hasWhatsapp }: TicketActionsProps) {
                 <span>KIRIM ULANG KE WHATSAPP</span>
               </>
             )}
-          </button>
+          </motion.button>
         )}
       </div>
 

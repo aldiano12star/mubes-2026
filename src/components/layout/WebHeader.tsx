@@ -11,7 +11,7 @@ export function WebHeader() {
   return (
     <header className="sticky top-0 z-30 w-full border-b border-edge/80 bg-surface/90 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Sisi Kiri: Logo + MUBES 2026 & Sub-label SABA EXPLOIT */}
+        {/* Sisi Kiri: Logo + MUBES 2026 */}
         <Link
           href="/"
           className="flex items-center gap-3 sm:gap-3.5 group focus:outline-hidden"
@@ -65,7 +65,7 @@ export function WebHeader() {
           </a>
         </nav>
 
-        {/* Sisi Kanan: Ghost Tactical Link Akses Panitia */}
+        {/* Sisi Kanan: Akses Panitia */}
         <div className="flex items-center gap-2">
           <Link
             href="/panitia/login"
@@ -73,7 +73,6 @@ export function WebHeader() {
           >
             <Shield className="h-4 w-4 shrink-0 text-brand group-hover:scale-110 transition-transform" />
             <span className="uppercase">PANITIA</span>
-            {/* Indikator Garis Merah Tipis saat Hover */}
             <span className="absolute bottom-1.5 left-3.5 right-3.5 h-[2px] bg-brand scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
           </Link>
         </div>

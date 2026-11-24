@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Participant } from "@prisma/client";
-import { Html5Qrcode } from "html5-qrcode";
+import { Html5Qrcode, type CameraDevice } from "html5-qrcode";
 import {
   Camera,
   CameraOff,
@@ -18,6 +18,8 @@ import {
   User,
   AlertCircle,
   ExternalLink,
+  SwitchCamera,
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "@/components/ui/Toast";
 import {
@@ -43,20 +45,28 @@ export function QrScannerPanel({
   const [isInitializingCamera, setIsInitializingCamera] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
 
+  // State Multi-Kamera
+  const [availableCameras, setAvailableCameras] = useState<CameraDevice[]>([]);
+  const [selectedCameraIndex, setSelectedCameraIndex] = useState(0);
+
+  // State Input File Cadangan (Kamera Sistem / Foto)
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // State Pencarian Manual
   const [searchQuery, setSearchQuery] = useState("");
 
   // State Loading Toggle Status
   const [loadingField, setLoadingField] = useState<string | null>(null);
 
-  // Ref untuk mengelola instance scanner dan cooldown anti-double-scan (3 detik)
+  // Ref untuk scanner dan anti double-scan cooldown (3 detik)
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const lastScannedRef = useRef<{ code: string; time: number }>({
     code: "",
     time: 0,
   });
 
-  // ── UMPAN BALIK SENSORIK (WEB AUDIO API BEEP + VIBRATION) ──
+  // ── SENSORIK BEEP AUDIO & GETARAN ──
   const playTacticalBeep = () => {
     try {
       const AudioCtx =
@@ -80,7 +90,7 @@ export function QrScannerPanel({
       osc.start();
       osc.stop(ctx.currentTime + 0.15);
     } catch {
-      // AudioContext ditolak atau tidak didukung peramban
+      // AudioContext ditolak peramban
     }
 
     if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -112,7 +122,7 @@ export function QrScannerPanel({
     const raw = decodedText?.trim().toUpperCase();
     if (!raw) return;
 
-    // Proteksi Cooldown 3 Detik untuk QR yang sama
+    // Cooldown 3 Detik untuk QR yang sama
     const now = Date.now();
     if (
       lastScannedRef.current.code === raw &&
@@ -139,41 +149,93 @@ export function QrScannerPanel({
     }
   };
 
-  // ── MANAJEMEN SIKLUS HIDUP SCANNER KAMERA ──
-  const startCamera = async () => {
+  // ── DETEKSI DAFTAR KAMERA PERANGKAT ──
+  const detectCameras = async (): Promise<CameraDevice[]> => {
+    try {
+      const devices = await Html5Qrcode.getCameras();
+      if (devices && devices.length > 0) {
+        setAvailableCameras(devices);
+        return devices;
+      }
+    } catch (err) {
+      console.warn("[Detect Cameras Warning]:", err);
+    }
+    return [];
+  };
+
+  // ── START SCANNER KAMERA ──
+  const startCamera = async (targetIndex?: number) => {
     setCameraError(null);
     setIsInitializingCamera(true);
 
     try {
+      // Stop scanner aktif sebelumnya bila ada
       if (scannerRef.current) {
         try {
-          await scannerRef.current.stop();
+          if (scannerRef.current.isScanning) {
+            await scannerRef.current.stop();
+          }
           await scannerRef.current.clear();
         } catch {
           // Abaikan
         }
       }
 
-      const html5QrCode = new Html5Qrcode("tactical-reader");
+      const html5QrCode = new Html5Qrcode("qr-reader");
       scannerRef.current = html5QrCode;
 
+      // Ambil daftar kamera
+      const devices =
+        availableCameras.length > 0
+          ? availableCameras
+          : await detectCameras();
+
+      let cameraConfig: string | { facingMode: string } = {
+        facingMode: "environment",
+      };
+
+      let camIndex = 0;
+      if (devices.length > 0) {
+        if (typeof targetIndex === "number" && devices[targetIndex]) {
+          camIndex = targetIndex;
+        } else {
+          // Prioritaskan kamera belakang / environment
+          const backCamIdx = devices.findIndex((c) =>
+            /back|rear|environment|belakang/i.test(c.label)
+          );
+          camIndex = backCamIdx !== -1 ? backCamIdx : 0;
+        }
+        setSelectedCameraIndex(camIndex);
+        cameraConfig = devices[camIndex].id;
+      }
+
+      // qrbox dinamis berdasarkan lebar kontainer
+      const qrboxConfig = (viewfinderWidth: number, viewfinderHeight: number) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        const boxSize = Math.min(
+          240,
+          Math.max(180, Math.floor(minEdge * 0.68))
+        );
+        return { width: boxSize, height: boxSize };
+      };
+
       await html5QrCode.start(
-        { facingMode: "environment" },
+        cameraConfig,
         {
           fps: 10,
-          qrbox: { width: 250, height: 250 },
+          qrbox: qrboxConfig,
           aspectRatio: 1.0,
         },
         handleScanSuccess,
         () => {
-          // Abaikan scanning frame tanpa QR
+          // Frame tanpa QR
         }
       );
 
       setIsCameraActive(true);
     } catch (err: unknown) {
       console.error("[Start Camera Error]:", err);
-      let errorMsg = "Gagal mengakses kamera belakang.";
+      let errorMsg = "Gagal mengakses kamera.";
       if (err instanceof Error) {
         if (
           err.name === "NotAllowedError" ||
@@ -196,10 +258,13 @@ export function QrScannerPanel({
     }
   };
 
+  // ── STOP SCANNER KAMERA ──
   const stopCamera = async () => {
-    if (scannerRef.current && isCameraActive) {
+    if (scannerRef.current) {
       try {
-        await scannerRef.current.stop();
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop();
+        }
         await scannerRef.current.clear();
       } catch (err) {
         console.error("[Stop Camera Error]:", err);
@@ -208,12 +273,52 @@ export function QrScannerPanel({
     setIsCameraActive(false);
   };
 
+  // ── GANTI KAMERA (DEPAN / BELAKANG) ──
+  const handleSwitchCamera = async () => {
+    if (availableCameras.length <= 1 || isInitializingCamera) return;
+    const nextIndex = (selectedCameraIndex + 1) % availableCameras.length;
+    await stopCamera();
+    await startCamera(nextIndex);
+  };
+
+  // ── SCAN DARI FOTO / KAMERA SISTEM (CADANGAN TANPA LIVE STREAM) ──
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingFile(true);
+    try {
+      let scanner = scannerRef.current;
+      if (!scanner) {
+        scanner = new Html5Qrcode("qr-reader");
+        scannerRef.current = scanner;
+      }
+
+      const decodedText = await scanner.scanFile(file, true);
+      if (decodedText) {
+        await handleScanSuccess(decodedText);
+      }
+    } catch (err) {
+      console.error("[Scan File Error]:", err);
+      toast.error(
+        "QR Code tidak terdeteksi pada gambar. Pastikan foto jelas dan memiliki pencahayaan cukup."
+      );
+    } finally {
+      setIsProcessingFile(false);
+      if (e.target) {
+        e.target.value = "";
+      }
+    }
+  };
+
   // Cleanup saat unmount
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
         try {
-          scannerRef.current.stop().catch(() => {});
+          if (scannerRef.current.isScanning) {
+            scannerRef.current.stop().catch(() => {});
+          }
           scannerRef.current.clear();
         } catch {
           // Abaikan
@@ -274,7 +379,7 @@ export function QrScannerPanel({
             <span>Pencarian Cepat Meja Registrasi</span>
           </label>
           <span className="font-mono text-xs text-zinc-500">
-            Nama / 3 Digit Kode Tiket
+            Nama / Kode Tiket
           </span>
         </div>
 
@@ -367,28 +472,40 @@ export function QrScannerPanel({
             )}
           </div>
 
-          {/* Kotak Bidik Kamera Scanner */}
+          {/* Kotak Bidik Scanner (Kontainer #qr-reader SELALU ada di DOM) */}
           <div className="relative w-full max-w-sm mx-auto aspect-square rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 flex flex-col items-center justify-center">
-            {/* Target Kontainer HTML5 QR Code */}
+            {/* Target Kontainer HTML5 QR Code SELALU terpasang di DOM */}
             <div
-              id="tactical-reader"
-              className={`w-full h-full ${!isCameraActive ? "hidden" : ""}`}
+              id="qr-reader"
+              className="w-full h-full min-h-[280px]"
             />
 
-            {!isCameraActive && (
-              <div className="p-6 text-center space-y-3">
+            {/* Overlay Standby saat kamera belum diaktifkan */}
+            {!isCameraActive && !isInitializingCamera && (
+              <div className="absolute inset-0 z-10 bg-zinc-950/95 flex flex-col items-center justify-center p-6 text-center space-y-3">
                 <Camera className="h-10 w-10 text-zinc-600 mx-auto" />
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Tekan tombol di bawah untuk mengaktifkan kamera belakang HP panitia.
+                <p className="text-xs text-zinc-400 leading-relaxed max-w-xs">
+                  Tekan tombol di bawah untuk mengaktifkan kamera scanner atau pilih opsi foto.
                 </p>
               </div>
             )}
 
+            {/* Overlay Loading saat inisialisasi kamera */}
             {isInitializingCamera && (
-              <div className="absolute inset-0 bg-zinc-950/90 flex flex-col items-center justify-center gap-2">
+              <div className="absolute inset-0 z-20 bg-zinc-950/90 flex flex-col items-center justify-center gap-2">
                 <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
                 <span className="text-xs text-zinc-300">
                   Menghubungkan kamera...
+                </span>
+              </div>
+            )}
+
+            {/* Overlay Loading saat memproses file foto */}
+            {isProcessingFile && (
+              <div className="absolute inset-0 z-20 bg-zinc-950/90 flex flex-col items-center justify-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-[#00E5FF]" />
+                <span className="text-xs text-zinc-300">
+                  Memindai QR Code dari foto...
                 </span>
               </div>
             )}
@@ -401,28 +518,64 @@ export function QrScannerPanel({
             </div>
           )}
 
-          {/* Tombol Kontrol Kamera */}
-          <div className="pt-2">
+          {/* Tombol Kontrol Kamera & Cadangan Foto */}
+          <div className="space-y-2.5 pt-1">
             {!isCameraActive ? (
               <button
                 type="button"
-                onClick={startCamera}
-                disabled={isInitializingCamera}
+                onClick={() => startCamera()}
+                disabled={isInitializingCamera || isProcessingFile}
                 className="w-full min-h-[44px] py-2.5 px-4 bg-rose-600 hover:bg-rose-500 disabled:bg-rose-600/50 text-white font-medium text-sm rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               >
                 <Camera className="h-4 w-4 shrink-0" />
                 <span>Aktifkan Kamera Scanner</span>
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={stopCamera}
-                className="w-full min-h-[44px] py-2.5 px-4 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 hover:bg-zinc-800 text-zinc-200 font-medium text-sm rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <CameraOff className="h-4 w-4 shrink-0" />
-                <span>Hentikan Kamera</span>
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                {availableCameras.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleSwitchCamera}
+                    disabled={isInitializingCamera}
+                    className="min-h-[44px] py-2.5 px-3 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 hover:bg-zinc-800 text-zinc-200 font-medium text-xs sm:text-sm rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <SwitchCamera className="h-4 w-4 shrink-0" />
+                    <span>Ganti Kamera</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={stopCamera}
+                  className={`min-h-[44px] py-2.5 px-3 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 hover:bg-zinc-800 text-zinc-200 font-medium text-xs sm:text-sm rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                    availableCameras.length <= 1 ? "col-span-2" : ""
+                  }`}
+                >
+                  <CameraOff className="h-4 w-4 shrink-0" />
+                  <span>Hentikan Kamera</span>
+                </button>
+              </div>
             )}
+
+            {/* Input Tersembunyi untuk Pemindaian dari Galeri / Kamera Bawaan HP */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
+
+            {/* Tombol Cadangan Scan dari Foto / Kamera Sistem */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isProcessingFile}
+              className="w-full min-h-[44px] py-2.5 px-4 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 hover:bg-zinc-800 text-zinc-300 font-medium text-xs sm:text-sm rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <ImageIcon className="h-4 w-4 shrink-0" />
+              <span>Scan dari Foto / Kamera Sistem</span>
+            </button>
           </div>
         </div>
 

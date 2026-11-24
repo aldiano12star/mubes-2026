@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
   motion,
@@ -8,7 +8,9 @@ import {
   useMotionValue,
   useSpring,
   useTransform,
-} from "framer-motion";
+} from "motion/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Calendar, Clock, MapPin, ChevronRight, Zap, Ticket } from "lucide-react";
 import { CountdownTimer } from "@/components/public/CountdownTimer";
 import { EVENT_DEFAULTS } from "@/lib/constants";
@@ -43,6 +45,7 @@ export function HeroBriefing({
   entryFeeAmount = EVENT_DEFAULTS.entryFeeAmount,
   entryFeeNote = EVENT_DEFAULTS.entryFeeNote,
 }: HeroBriefingProps) {
+  const heroRef = useRef<HTMLElement>(null);
   const [selectedSlug, setSelectedSlug] = useState<"jett" | "omen" | "phoenix">(
     "jett"
   );
@@ -52,7 +55,7 @@ export function HeroBriefing({
   const currentAgent: ValorantAgent =
     VALORANT_ROSTER.find((a) => a.slug === selectedSlug) || VALORANT_ROSTER[0];
 
-  // Mouse Parallax (Framer Motion springs, desktop only)
+  // Mouse Parallax (Springs, desktop only)
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const springConfig = { damping: 25, stiffness: 120 };
@@ -81,9 +84,70 @@ export function HeroBriefing({
     mouseY.set(0);
   };
 
+  // GSAP Staggered Entrance Animation untuk Hero
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    gsap.registerPlugin(ScrollTrigger);
+
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (prefersReduced) return;
+
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+      tl.fromTo(
+        ".hero-tagline",
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.5 }
+      )
+        .fromTo(
+          ".hero-title",
+          { opacity: 0, y: 25 },
+          { opacity: 1, y: 0, duration: 0.65 },
+          "-=0.3"
+        )
+        .fromTo(
+          ".hero-subtitle",
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: 0.5 },
+          "-=0.4"
+        )
+        .fromTo(
+          ".hero-meta-card",
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.5, stagger: 0.08 },
+          "-=0.3"
+        )
+        .fromTo(
+          ".hero-countdown-block",
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.5 },
+          "-=0.25"
+        )
+        .fromTo(
+          ".hero-cta-btn",
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.45, stagger: 0.08 },
+          "-=0.2"
+        );
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  // Ambient Glow Colors per Agent
+  const ambientGlowStyles = {
+    jett: "from-[#00E5FF]/20 via-[#00E5FF]/5 to-transparent",
+    omen: "from-[#9333EA]/25 via-[#9333EA]/5 to-transparent",
+    phoenix: "from-[#FF4655]/25 via-[#FF4655]/5 to-transparent",
+  };
+
   return (
     <section
       id="hero-section"
+      ref={heroRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className="relative overflow-hidden bg-[#0F1923] border-b border-edge/80 pt-8 pb-16 lg:pt-14 lg:pb-24 scroll-mt-20"
@@ -100,6 +164,20 @@ export function HeroBriefing({
         />
         {/* Dark radial vignette towards canvas edges */}
         <div className="absolute inset-0 bg-radial from-transparent via-[#0F1923]/75 to-[#0F1923]" />
+      </div>
+
+      {/* ── LAYER 1B: DYNAMIC AMBIENT GLOW PER AGENT ── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={selectedSlug}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className={`absolute right-0 top-1/4 w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] rounded-full bg-gradient-to-br ${ambientGlowStyles[selectedSlug]} blur-3xl pointer-events-none opacity-80`}
+          />
+        </AnimatePresence>
       </div>
 
       {/* ── LAYER 2: GIANT WATERMARK EDITORIAL TYPOGRAPHY ── */}
@@ -127,7 +205,7 @@ export function HeroBriefing({
           <div className="lg:col-span-7">
             <div className="w-full max-w-[560px] space-y-6">
               {/* Tactical Tagline / Coordinates */}
-              <div className="flex items-center gap-3">
+              <div className="hero-tagline flex items-center gap-3">
                 <span className="w-8 h-[2px] bg-brand shrink-0" />
                 <span className="font-condensed font-bold text-xs tracking-[0.24em] text-brand uppercase">
                   SMAN 1 BANTUL • RUANG YUDISTIRA
@@ -137,10 +215,10 @@ export function HeroBriefing({
 
               {/* Giant Anton Title with Editorial Subtitle */}
               <div className="space-y-3">
-                <h1 className="font-display font-bold uppercase text-4xl sm:text-6xl lg:text-7xl text-ink tracking-tight leading-[0.95]">
+                <h1 className="hero-title font-display font-bold uppercase text-4xl sm:text-6xl lg:text-7xl text-ink tracking-tight leading-[0.95]">
                   {eventTitle}
                 </h1>
-                <p className="font-condensed font-bold text-sm sm:text-lg tracking-[0.18em] text-[#FF4655] uppercase">
+                <p className="hero-subtitle font-condensed font-bold text-sm sm:text-lg tracking-[0.18em] text-[#FF4655] uppercase">
                   {eventSubtitle}
                 </p>
               </div>
@@ -149,7 +227,7 @@ export function HeroBriefing({
               <div className="space-y-3 pt-1">
                 {/* Baris Atas: 2 Kolom Sejajar (Tanggal & Lokasi) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="border border-edge bg-[#14202C]/80 valo-chamfer-sm p-3.5 flex items-start gap-3">
+                  <div className="hero-meta-card border border-edge bg-[#14202C]/80 valo-chamfer-sm p-3.5 flex items-start gap-3">
                     <Calendar className="h-5 w-5 text-brand shrink-0 mt-0.5" />
                     <div className="min-w-0 flex-1">
                       <span className="block font-condensed font-bold text-[10px] tracking-[0.2em] text-ink-subtle uppercase">
@@ -165,7 +243,7 @@ export function HeroBriefing({
                     </div>
                   </div>
 
-                  <div className="border border-edge bg-[#14202C]/80 valo-chamfer-sm p-3.5 flex items-start gap-3">
+                  <div className="hero-meta-card border border-edge bg-[#14202C]/80 valo-chamfer-sm p-3.5 flex items-start gap-3">
                     <MapPin className="h-5 w-5 text-brand shrink-0 mt-0.5" />
                     <div className="min-w-0 flex-1">
                       <span className="block font-condensed font-bold text-[10px] tracking-[0.2em] text-ink-subtle uppercase">
@@ -182,7 +260,7 @@ export function HeroBriefing({
                 </div>
 
                 {/* Baris Bawah: 1 Bilah Horizontal Selebar Penuh (HTM Radiant Pass) */}
-                <div className="border border-[#00E5FF]/40 bg-[#14202C]/90 valo-chamfer-sm p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
+                <div className="hero-meta-card border border-[#00E5FF]/40 bg-[#14202C]/90 valo-chamfer-sm p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <Ticket className="h-5 w-5 text-[#00E5FF] shrink-0" />
                     <div className="min-w-0 flex-1">
@@ -206,30 +284,34 @@ export function HeroBriefing({
               </div>
 
               {/* Precision Spike Countdown Component */}
-              <div className="pt-2">
+              <div className="hero-countdown-block pt-2">
                 <CountdownTimer targetIso={eventDateIso} />
               </div>
 
-              {/* Double-Border Riot CTA Buttons */}
+              {/* Double-Border Riot CTA Buttons dengan Feedback Sentuh Mobile */}
               <div className="pt-4 flex flex-wrap items-center gap-4">
-                <a
+                <motion.a
                   href="#rsvp-section"
-                  className="riot-btn-frame min-h-[48px]"
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                  className="hero-cta-btn riot-btn-frame min-h-[48px]"
                 >
                   <span className="riot-btn-inner flex items-center gap-2">
                     <span>KONFIRMASI KEHADIRAN</span>
                     <ChevronRight className="h-4 w-4" />
                   </span>
-                </a>
+                </motion.a>
 
-                <a
+                <motion.a
                   href="#rundown-section"
-                  className="riot-btn-frame-secondary min-h-[48px]"
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                  className="hero-cta-btn riot-btn-frame-secondary min-h-[48px]"
                 >
                   <span className="riot-btn-inner">
                     LIHAT RUNDOWN
                   </span>
-                </a>
+                </motion.a>
               </div>
             </div>
           </div>
@@ -286,7 +368,7 @@ export function HeroBriefing({
               </div>
             </div>
 
-            {/* Interactive Agent Switcher (3 Icons) & Ability Kit Panel */}
+            {/* Interactive Agent Switcher & Ability Kit Panel */}
             <div className="w-full max-w-md bg-[#14202C]/95 border border-edge/90 p-4 valo-chamfer space-y-3 backdrop-blur-md">
               {/* Agent Roster Select Row */}
               <div className="flex items-center justify-between border-b border-edge/60 pb-3">
@@ -297,9 +379,11 @@ export function HeroBriefing({
                   {VALORANT_ROSTER.map((agent) => {
                     const isSelected = selectedSlug === agent.slug;
                     return (
-                      <button
+                      <motion.button
                         key={agent.slug}
                         type="button"
+                        whileTap={{ scale: 0.92 }}
+                        transition={{ type: "spring", stiffness: 420, damping: 28 }}
                         onClick={() => {
                           setSelectedSlug(agent.slug);
                           setActiveSkill(null);
@@ -320,7 +404,7 @@ export function HeroBriefing({
                             className="object-contain"
                           />
                         </div>
-                      </button>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -333,18 +417,19 @@ export function HeroBriefing({
                     ABILITY KIT ({currentAgent.name})
                   </span>
                   <span className="font-mono text-[10px] text-brand tracking-widest uppercase">
-                    KLIK SKILL UNTUK INFO
+                    KETUK SKILL UNTUK INFO
                   </span>
                 </div>
 
                 <div className="grid grid-cols-4 gap-2">
                   {currentAgent.abilities.map((ability, idx) => {
-                    const isSkillActive =
-                      activeSkill?.name === ability.name;
+                    const isSkillActive = activeSkill?.name === ability.name;
                     return (
-                      <button
+                      <motion.button
                         key={ability.name + idx}
                         type="button"
+                        whileTap={{ scale: 0.92 }}
+                        transition={{ type: "spring", stiffness: 420, damping: 28 }}
                         onClick={() =>
                           setActiveSkill(isSkillActive ? null : ability)
                         }
@@ -371,32 +456,41 @@ export function HeroBriefing({
                         <span className="font-mono font-bold text-[10px] text-ink-muted mt-0.5">
                           {ability.slot}
                         </span>
-                      </button>
+                      </motion.button>
                     );
                   })}
                 </div>
 
-                {/* Tactical Skill Description Popover / Box (Kontras Tinggi & Keterbacaan Optimal) */}
+                {/* Tactical Skill Description Popover / Box */}
                 <div className="min-h-[64px] p-3 bg-[#0F1923]/90 border border-[#2A3B4C] border-l-2 border-l-[#FF4655] text-left">
-                  {activeSkill ? (
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[10px] font-bold text-white px-1.5 py-0.5 bg-brand border border-brand/50">
-                          {activeSkill.slot}
-                        </span>
-                        <span className="font-condensed font-bold text-sm uppercase text-white tracking-wider">
-                          {activeSkill.name}
-                        </span>
-                      </div>
-                      <p className="font-sans text-sm leading-relaxed text-[#ECE8E1]">
-                        {activeSkill.description}
+                  <AnimatePresence mode="wait">
+                    {activeSkill ? (
+                      <motion.div
+                        key={activeSkill.name}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.18 }}
+                        className="space-y-1"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[10px] font-bold text-white px-1.5 py-0.5 bg-brand border border-brand/50">
+                            {activeSkill.slot}
+                          </span>
+                          <span className="font-condensed font-bold text-sm uppercase text-white tracking-wider">
+                            {activeSkill.name}
+                          </span>
+                        </div>
+                        <p className="font-sans text-sm leading-relaxed text-[#ECE8E1]">
+                          {activeSkill.description}
+                        </p>
+                      </motion.div>
+                    ) : (
+                      <p className="font-sans text-xs text-ink-subtle italic flex items-center justify-center h-full py-2">
+                        Arahkan kursor atau ketuk salah satu skill di atas untuk membaca fungsi taktisnya.
                       </p>
-                    </div>
-                  ) : (
-                    <p className="font-sans text-xs text-ink-subtle italic flex items-center justify-center h-full py-2">
-                      Arahkan kursor atau ketuk salah satu skill di atas untuk membaca fungsi taktisnya.
-                    </p>
-                  )}
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </div>

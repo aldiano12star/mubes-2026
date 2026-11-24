@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import {
   MapPin,
@@ -12,10 +12,9 @@ import {
   ChevronUp,
   Crosshair,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "motion/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
 import { EVENT_DEFAULTS } from "@/lib/constants";
 
 export interface RundownItem {
@@ -100,40 +99,64 @@ export function EventBriefingSection({
   // State ekspansi susunan acara panjang (> 6 sesi)
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // State sesi acara aktif untuk interaksi ketuk (tap) pada HP
+  const [activeSessionIndex, setActiveSessionIndex] = useState<number | null>(null);
+
   const cleanContactWhatsapp = contactWhatsapp.replace(/\D/g, "");
   const waUrl = `https://wa.me/${cleanContactWhatsapp}?text=${encodeURIComponent(
     "Halo Humas Saba ExploIT, saya ingin bertanya terkait acara Musyawarah Besar (Mubes) 2026..."
   )}`;
 
-  useGSAP(
-    () => {
-      gsap.registerPlugin(ScrollTrigger);
-      const prefersReduced = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-      ).matches;
-      if (prefersReduced) return;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    gsap.registerPlugin(ScrollTrigger);
 
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (prefersReduced) return;
+
+    const ctx = gsap.context(() => {
+      // 1. Scroll reveal judul Lokasi Acara & Susunan Acara
+      gsap.fromTo(
+        ".section-title-reveal",
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.55,
+          stagger: 0.2,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 80%",
+          },
+        }
+      );
+
+      // 2. Scroll reveal baris rundown
       if (timelineRef.current) {
         const rows = timelineRef.current.querySelectorAll(".rundown-row");
         gsap.fromTo(
           rows,
-          { opacity: 0, x: -24 },
+          { opacity: 0, x: -20 },
           {
             opacity: 1,
             x: 0,
-            stagger: 0.1,
+            stagger: 0.08,
             duration: 0.45,
             ease: "power2.out",
             scrollTrigger: {
               trigger: timelineRef.current,
-              start: "top 80%",
+              start: "top 82%",
             },
           }
         );
       }
-    },
-    { scope: containerRef, dependencies: [isExpanded] }
-  );
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, [isExpanded]);
 
   const visibleRundown =
     rundown.length > 6 && !isExpanded ? rundown.slice(0, 6) : rundown;
@@ -146,14 +169,14 @@ export function EventBriefingSection({
       className="relative w-full bg-[#ECE8E1] text-[#0F1923] py-16 sm:py-24 scroll-mt-20 valo-slash-top valo-slash-bottom"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-        {/* ── BAGIAN ATAS: TACTICAL RECON HUD & VENUE SHOWCASE ── */}
+        {/* ── BAGIAN ATAS: LOKASI ACARA & VENUE SHOWCASE ── */}
         <div id="denah-section" className="space-y-6 scroll-mt-24">
-          {/* Editorial Section Header */}
-          <div className="flex items-center gap-3">
+          {/* Section Header */}
+          <div className="section-title-reveal flex items-center gap-3">
             <span className="w-8 h-[2px] bg-[#FF4655]" />
-            <span className="font-condensed font-bold text-xs tracking-[0.22em] text-[#FF4655] uppercase">
-              TACTICAL RECON HUD • MARKAS OPERASI MUBES
-            </span>
+            <h2 className="font-condensed font-bold text-xs tracking-[0.22em] text-[#FF4655] uppercase">
+              LOKASI ACARA
+            </h2>
             <span className="h-px flex-1 bg-[#0F1923]/15" />
           </div>
 
@@ -168,7 +191,7 @@ export function EventBriefingSection({
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-[10px] text-[#00E5FF] border border-[#00E5FF]/40 bg-[#00E5FF]/10 px-2 py-0.5 uppercase tracking-wider font-semibold">
-                  RECON SCAN: ACTIVE
+                  STATUS: TERBUKA
                 </span>
                 <span className="hidden sm:inline font-mono text-[10px] text-[#0F1923] bg-[#ECE8E1] font-bold px-2 py-0.5 uppercase tracking-wider">
                   MARKAS BESAR
@@ -178,68 +201,69 @@ export function EventBriefingSection({
 
             {/* Split Screen Showcase: Foto Sekolah + Blueprint Denah */}
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[320px] lg:min-h-[380px]">
-              {/* Foto Utama Sekolah (Tampil penuh, jernih & tajam sesuai color grading) */}
-              <div className="lg:col-span-8 relative min-h-[240px] sm:min-h-[300px] lg:min-h-full overflow-hidden group">
-                <Image
-                  src={
-                    useFallbackPhoto
-                      ? "/images/valorant/map-ascent-splash.png"
-                      : schoolPhotoSrc
-                  }
-                  alt="Foto Udara SMA Negeri 1 Bantul — Ruang Yudistira"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 65vw"
-                  className="object-cover group-hover:scale-102 transition-transform duration-700"
-                  priority
-                  onError={() => setUseFallbackPhoto(true)}
-                />
-                {/* Overlay lembut bagian bawah untuk kenyamanan baca badge callout */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0F1923]/90 via-[#0F1923]/20 to-transparent pointer-events-none" />
+              {/* Foto Utama Sekolah (Tampil utuh, bersih dari overlay tulisan penutup) */}
+              <div className="lg:col-span-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/10 bg-[#0F1923]">
+                {/* Frame Foto Utama 100% Bersih */}
+                <div className="relative w-full h-[240px] sm:h-[300px] lg:h-[340px] overflow-hidden group">
+                  <Image
+                    src={
+                      useFallbackPhoto
+                        ? "/images/valorant/map-ascent-splash.png"
+                        : schoolPhotoSrc
+                    }
+                    alt="Foto Udara SMA Negeri 1 Bantul"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 65vw"
+                    className="object-cover group-hover:scale-102 transition-transform duration-700"
+                    priority
+                    onError={() => setUseFallbackPhoto(true)}
+                  />
 
-                {/* Tactical Recon HUD Corner Accents */}
-                <div className="absolute top-4 right-4 pointer-events-none opacity-40">
-                  <div className="w-12 h-12 border-t border-r border-[#00E5FF]" />
-                </div>
-                <div className="absolute bottom-16 left-4 pointer-events-none opacity-40">
-                  <div className="w-12 h-12 border-b border-l border-[#00E5FF]" />
+                  {/* Corner Accents Minimalis Tanpa Menutupi Foto */}
+                  <div className="absolute top-3 right-3 pointer-events-none opacity-40">
+                    <div className="w-8 h-8 border-t border-r border-[#00E5FF]" />
+                  </div>
+                  <div className="absolute bottom-3 left-3 pointer-events-none opacity-40">
+                    <div className="w-8 h-8 border-b border-l border-[#00E5FF]" />
+                  </div>
                 </div>
 
-                {/* Tactical Callout Badges on Top of Photo (Sesuai Notulensi & Permintaan User) */}
-                <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 z-10">
-                  <div className="bg-[#0F1923]/90 border border-[#FF4655]/60 px-3 py-1.5 backdrop-blur-xs flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#FF4655] animate-pulse shrink-0" />
-                    <span className="font-condensed font-bold text-xs tracking-wider text-white">
+                {/* Baris Strip Penanda Lokasi Tepat di Bawah Foto (Bebas dari Atas Gambar) */}
+                <div className="p-3.5 bg-[#14202C] border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="px-3 py-2 bg-[#0F1923] border border-[#FF4655]/60 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#FF4655] shrink-0" />
+                    <span className="font-condensed font-bold text-xs tracking-wider text-white truncate">
                       SITE A • RUANG YUDISTIRA
                     </span>
                   </div>
-                  <div className="bg-[#0F1923]/90 border border-status-ok/60 px-3 py-1.5 backdrop-blur-xs flex items-center gap-2">
+                  <div className="px-3 py-2 bg-[#0F1923] border border-status-ok/60 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-status-ok shrink-0" />
-                    <span className="font-condensed font-bold text-xs tracking-wider text-white">
+                    <span className="font-condensed font-bold text-xs tracking-wider text-white truncate">
                       SPAWN • PARKIR DALAM SEKOLAH
                     </span>
                   </div>
-                  <div className="bg-[#0F1923]/90 border border-[#00E5FF]/60 px-3 py-1.5 backdrop-blur-xs flex items-center gap-2">
+                  <div className="px-3 py-2 bg-[#0F1923] border border-[#00E5FF]/60 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#00E5FF] shrink-0" />
-                    <span className="font-condensed font-bold text-xs tracking-wider text-white">
-                      CHECKPOINT • MEJA REGISTRASI HUMAS
+                    <span className="font-condensed font-bold text-xs tracking-wider text-white truncate">
+                      CHECKPOINT • MEJA REGISTRASI
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Blueprint Denah Sekolah & Info Venue */}
-              <div className="lg:col-span-4 p-6 bg-[#0F1923] flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-white/10 space-y-4">
+              <div className="lg:col-span-4 p-6 bg-[#0F1923] flex flex-col justify-between space-y-4">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
                     <span className="font-condensed font-bold text-xs tracking-[0.18em] text-[#00E5FF] uppercase">
-                      DENAH SEKOLAH (TACTICAL BLUEPRINT)
+                      DENAH SEKOLAH
                     </span>
                     <span className="font-mono text-[10px] text-[#FF4655]">
                       RUANG YUDISTIRA
                     </span>
                   </div>
 
-                  {/* Blueprint Denah Container / Slot Belum Ada */}
+                  {/* Blueprint Denah Container / Slot Placeholder */}
                   {schoolBlueprintSrc && !useFallbackBlueprint ? (
                     <div className="relative w-full aspect-square max-w-[180px] mx-auto bg-[#14202C] border border-[#00E5FF]/30 p-2 flex items-center justify-center">
                       <Image
@@ -252,9 +276,8 @@ export function EventBriefingSection({
                       />
                     </div>
                   ) : (
-                    /* Placeholder Tactical Radar / Blueprint Grid Estetik */
+                    /* Placeholder Radar Taktis Rapi */
                     <div className="relative w-full aspect-square max-w-[180px] mx-auto bg-[#14202C] border border-[#00E5FF]/40 p-3 flex flex-col items-center justify-center text-center overflow-hidden valo-chamfer-sm group">
-                      {/* Latar Belakang Minimap Taktis Halus */}
                       <Image
                         src="/images/valorant/map-ascent-minimap.png"
                         alt="Tactical Radar Grid"
@@ -263,9 +286,8 @@ export function EventBriefingSection({
                         className="object-contain filter invert opacity-20 p-2 pointer-events-none group-hover:scale-105 transition-transform duration-500"
                       />
 
-                      {/* Radar Target Graphic & Keterangan */}
                       <div className="relative z-10 flex flex-col items-center justify-center space-y-2 p-1">
-                        <div className="relative w-9 h-9 flex items-center justify-center">
+                        <div className="relative w-8 h-8 flex items-center justify-center">
                           <span className="absolute inset-0 rounded-full border border-[#00E5FF]/40 animate-ping opacity-60" />
                           <span className="relative w-2.5 h-2.5 rounded-full bg-[#00E5FF]/40 border border-[#00E5FF]" />
                         </div>
@@ -275,20 +297,14 @@ export function EventBriefingSection({
                             DENAH LOKASI
                           </span>
                           <span className="font-mono text-[9px] text-white/90 bg-[#0F1923]/90 border border-white/15 px-2 py-0.5 rounded-none block">
-                            SEGERA HADIR (SIE KORLAP)
+                            DENAH LOKASI • SEGERA TERSEDIA
                           </span>
                         </div>
                       </div>
-
-                      {/* Corner Taktis */}
-                      <div className="absolute top-1 left-1 w-2 h-2 border-t border-l border-[#00E5FF]/60 pointer-events-none" />
-                      <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-[#00E5FF]/60 pointer-events-none" />
-                      <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-[#00E5FF]/60 pointer-events-none" />
-                      <div className="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-[#00E5FF]/60 pointer-events-none" />
                     </div>
                   )}
 
-                  {/* Alamat Resmi & Waktu (Bersih, Sesuai Notulensi) */}
+                  {/* Alamat Resmi & Waktu */}
                   <div className="space-y-2 pt-1 font-condensed">
                     <div>
                       <span className="text-[10px] tracking-[0.2em] text-white/50 uppercase block">
@@ -313,24 +329,25 @@ export function EventBriefingSection({
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-white/10 flex items-center justify-between font-mono text-[10px] text-white/50">
-                  <span>COORD: 07°53&apos;S 110°19&apos;E</span>
-                  <span className="text-[#00E5FF]">BANTUL RECON</span>
+                {/* Koordinat Akurat SMA Negeri 1 Bantul */}
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between font-mono text-[10px] text-white/60">
+                  <span>COORD: 07°53&apos;33&quot;S 110°19&apos;58&quot;E</span>
+                  <span className="text-[#00E5FF]">BANTUL</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ── BAGIAN BAWAH: EDITORIAL MISSION TIMELINE & STICKY HUMAS CARD ── */}
+        {/* ── BAGIAN BAWAH: SUSUNAN ACARA & STICKY HUMAS CARD ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* Kolom Kiri: Editorial Mission Timeline (Rundown) */}
+          {/* Kolom Kiri: Susunan Acara (Rundown) */}
           <div className="lg:col-span-8 space-y-6">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="section-title-reveal flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-[2px] bg-[#FF4655]" />
                 <h2 className="font-display font-bold uppercase text-2xl sm:text-3xl text-[#0F1923] tracking-wide">
-                  SUSUNAN ACARA (MISSION TIMELINE)
+                  SUSUNAN ACARA
                 </h2>
               </div>
               <span className="font-mono text-xs text-[#0F1923]/60 font-semibold">
@@ -344,13 +361,30 @@ export function EventBriefingSection({
             >
               {visibleRundown.map((item, idx) => {
                 const stepNum = String(idx + 1).padStart(2, "0");
+                const isActive = activeSessionIndex === idx;
+
                 return (
-                  <div
+                  <motion.div
                     key={idx}
-                    className="rundown-row group relative py-5 sm:py-6 px-4 hover:bg-[#0F1923]/[0.035] transition-all duration-300 flex flex-col sm:flex-row sm:items-baseline gap-4 sm:gap-6 border-l-4 border-l-transparent hover:border-l-[#FF4655]"
+                    onClick={() =>
+                      setActiveSessionIndex((prev) => (prev === idx ? null : idx))
+                    }
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                    className={`rundown-row group relative py-5 sm:py-6 px-4 transition-all duration-300 flex flex-col sm:flex-row sm:items-baseline gap-4 sm:gap-6 border-l-4 cursor-pointer select-none ${
+                      isActive
+                        ? "bg-[#0F1923]/[0.08] border-l-[#FF4655]"
+                        : "hover:bg-[#0F1923]/[0.035] border-l-transparent hover:border-l-[#FF4655]"
+                    }`}
                   >
                     {/* Big Bold Anton Step Number */}
-                    <div className="font-display font-bold text-3xl sm:text-4xl text-[#0F1923]/30 group-hover:text-[#FF4655] transition-colors shrink-0 w-12">
+                    <div
+                      className={`font-display font-bold text-3xl sm:text-4xl transition-colors shrink-0 w-12 ${
+                        isActive
+                          ? "text-[#FF4655]"
+                          : "text-[#0F1923]/30 group-hover:text-[#FF4655]"
+                      }`}
+                    >
                       {stepNum}
                     </div>
 
@@ -359,8 +393,14 @@ export function EventBriefingSection({
                       {item.time}
                     </div>
 
-                    {/* Title & Description with Smooth Shift */}
-                    <div className="min-w-0 flex-1 space-y-1 transform group-hover:translate-x-1.5 transition-transform duration-300">
+                    {/* Title & Description dengan Pergeseran Taktis */}
+                    <div
+                      className={`min-w-0 flex-1 space-y-1 transition-transform duration-300 ${
+                        isActive
+                          ? "translate-x-1"
+                          : "group-hover:translate-x-1.5"
+                      }`}
+                    >
                       <h3 className="font-display font-bold uppercase text-lg sm:text-xl text-[#0F1923] tracking-wide">
                         {item.title}
                       </h3>
@@ -368,16 +408,18 @@ export function EventBriefingSection({
                         {item.description}
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
 
-            {/* Tombol Buka/Tutup Rundown Panjang (> 6 sesi) */}
+            {/* Tombol Buka/Tutup Rundown Panjang */}
             {rundown.length > 6 && (
               <div className="pt-2 flex justify-center">
-                <button
+                <motion.button
                   type="button"
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 28 }}
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="min-h-[44px] px-6 py-2.5 border-2 border-[#0F1923] bg-white hover:bg-[#0F1923] text-[#0F1923] hover:text-white font-condensed font-bold text-xs uppercase tracking-[0.18em] transition-all flex items-center gap-2 cursor-pointer shadow-sm"
                 >
@@ -392,15 +434,14 @@ export function EventBriefingSection({
                       <ChevronDown className="h-4 w-4 shrink-0" />
                     </>
                   )}
-                </button>
+                </motion.button>
               </div>
             )}
           </div>
 
-          {/* Kolom Kanan: Sticky Dark Humas Briefing Card */}
+          {/* Kolom Kanan: Sticky Humas Card */}
           <div className="lg:col-span-4 sticky top-24">
             <div className="relative border-2 border-[#0F1923] bg-[#0F1923] text-[#ECE8E1] valo-chamfer p-6 sm:p-7 space-y-5 overflow-hidden shadow-2xl">
-              {/* Subtle Weapon Watermark in Background */}
               <div className="absolute -right-12 -bottom-8 w-64 h-32 opacity-10 pointer-events-none select-none">
                 <Image
                   src="/images/valorant/weapon-vandal.png"
@@ -420,7 +461,7 @@ export function EventBriefingSection({
               </div>
 
               <p className="font-sans text-xs text-white/70 leading-relaxed">
-                Memerlukan konfirmasi jadwal, kendala registrasi tiket, atau koordinasi alumni? Hubungi koordinator resmi Humas Saba ExploIT:
+                Memerlukan informasi lebih lanjut mengenai jadwal atau koordinasi kedatangan? Hubungi koordinator Humas Saba ExploIT:
               </p>
 
               {/* Contact Information Box */}
@@ -436,11 +477,13 @@ export function EventBriefingSection({
                 </p>
               </div>
 
-              {/* Riot Double-Border Style Action Button for WhatsApp */}
-              <a
+              {/* Action Button for WhatsApp */}
+              <motion.a
                 href={waUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 420, damping: 28 }}
                 className="riot-btn-frame w-full min-h-[48px]"
               >
                 <span className="riot-btn-inner flex items-center justify-center gap-2">
@@ -448,10 +491,10 @@ export function EventBriefingSection({
                   <span>HUBUNGI VIA WHATSAPP</span>
                   <ChevronRight className="h-4 w-4 shrink-0" />
                 </span>
-              </a>
+              </motion.a>
 
               <div className="p-3 bg-[#0F1923] border border-white/10 text-[11px] text-white/50 leading-tight font-sans">
-                Layanan respons taktis aktif setiap hari pukul 08.00 – 21.00 WIB.
+                Layanan informasi aktif setiap hari pukul 08.00 – 21.00 WIB.
               </div>
             </div>
           </div>

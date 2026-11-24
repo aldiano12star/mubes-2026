@@ -302,3 +302,31 @@
     transition: none !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+ * HTML5-QRCODE CAMERA FIX FOR MOBILE (PREVENT ZERO-HEIGHT / BLACK SCREEN)
+ * ══════════════════════════════════════════════════════════════ */
+#tactical-reader,
+#qr-reader {
+  width: 100% !important;
+  min-height: 280px !important;
+  position: relative !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+#tactical-reader video,
+#qr-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 280px !important;
+  object-fit: cover !important;
+  display: block !important;
+  border-radius: 0.75rem !important;
+}
+
+#tactical-reader__scan_region,
+#qr-reader__scan_region {
+  min-height: 240px !important;
+}
+
